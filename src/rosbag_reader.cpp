@@ -9,34 +9,14 @@
 
 namespace aria {
 RosbagReader::RosbagReader(const std::string& bag_file)
-    : bag_file_path_(bag_file) {}
+    : bag_file_path_(bag_file), view_(nullptr) {}
 
 void RosbagReader::readBag() {
-  rosbag::Bag bag;
-  try {
-    bag.open(bag_file_path_, rosbag::bagmode::Read);
-    // print all topics
-  } catch (const rosbag::BagException& e) {
-    LOG(FATAL) << "Failed to open bag file: " << e.what();
-  }
+  openBag();
 
-  std::vector<std::string> topics;
-  for (const auto& cb : callbacks_) {
-    topics.push_back(cb.first);
-  }
+  CHECK(view_ != nullptr) << "View is not initialized";
+  while (readOnce());
 
-  rosbag::View view(bag, rosbag::TopicQuery(topics));
-
-  std::for_each(
-      view.begin(), view.end(), [this](const rosbag::MessageInstance& m) {
-        VLOG(1) << "Received message on topic: " << m.getTopic();
-        if (callbacks_.count(m.getTopic())) {
-          VLOG(1) << "calling callback for topic: " << m.getTopic();
-          CHECK(callbacks_[m.getTopic()] != nullptr);
-          callbacks_[m.getTopic()]->call(m);
-        }
-      });
-
-  bag.close();
+  closeBag();
 }
 }  // namespace aria
