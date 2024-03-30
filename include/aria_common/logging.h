@@ -17,6 +17,7 @@ inline std::filesystem::path initializeOutputsDirectory(
   auto log_dir = std::filesystem::path(output_dir) / std::to_string(result);
   // Create the directory and any necessary parent directories
   std::filesystem::create_directories(log_dir / "logs");
+  std::filesystem::create_directories(log_dir / "graphs");
   // Create a dummy file with the tag as the name
   std::ofstream tag_file((log_dir / tag).string());
 
