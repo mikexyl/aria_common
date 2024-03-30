@@ -1,10 +1,8 @@
 #ifndef ARIA_COMMON_BENCHMARK_H_
 #define ARIA_COMMON_BENCHMARK_H_
 
-#define BENCHMARK(codeBlock, label) BENCHMARK_WITH_LOG(codeBlock, label, "")
-
 // Macro for benchmarking a block of code
-#define BENCHMARK_WITH_LOG(codeBlock, label, extra_log)                    \
+#define BENCHMARK(codeBlock, label)                                        \
   do {                                                                     \
     LOG(INFO) << "Benchmarking: " << label;                                \
     auto start = std::chrono::high_resolution_clock::now();                \
@@ -12,8 +10,7 @@
       codeBlock;                                                           \
     } catch (const std::exception& e) {                                    \
       LOG(ERROR) << "Benchmarking: " << label                              \
-                 << " failed with exception: " << e.what()                 \
-                 << "\n extra log: " << extra_log;                         \
+                 << " failed with exception: " << e.what();                \
       throw;                                                               \
     }                                                                      \
     auto end = std::chrono::high_resolution_clock::now();                  \

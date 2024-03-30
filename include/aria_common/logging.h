@@ -1,3 +1,6 @@
+#ifndef ARIA_COMMON_LOGGING_H_
+#define ARIA_COMMON_LOGGING_H_
+
 #include <glog/logging.h>
 
 #include <filesystem>
@@ -25,3 +28,5 @@ inline std::filesystem::path initializeOutputsDirectory(
   return log_dir;
 }
 }  // namespace aria
+
+#endif  // ARIA_COMMON_LOGGING_H_

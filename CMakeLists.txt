@@ -7,10 +7,48 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-include_directories(include)
+find_package(Glog REQUIRED)
+find_package(Gflags REQUIRED)
+find_package(GTSAM REQUIRED)
+find_package(GTSAM_UNSTABLE REQUIRED)
+
+# find catkin
+find_package(catkin COMPONENTS
+  roscpp
+)
+
+# if catkin is found, add the catkin include directories
+if(catkin_FOUND)
+        set(ROS_SRC
+                src/rosbag_reader.cpp
+                src/rosbag_writer.cpp
+        )
+else()
+        set(ROS_SRC "")
+        set(CATKIN_INCLUDE_DIRS "")
+        set(catkin_LIBRARIES "")
+endif()
 
 add_library(${PROJECT_NAME}
     src/dependency_tracker.cpp
+    ${ROS_SRC}
+)
+target_include_directories(
+        ${PROJECT_NAME}
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+        ${GFLAGS_INCLUDE_DIR}
+        ${GLOG_INCLUDE_DIR}
+        ${GTSAM_INCLUDE_DIR}
+        ${GTSAM_UNSTABLE_INCLUDE_DIR}
+        ${catkin_INCLUDE_DIRS}
+)
+target_link_libraries(${PROJECT_NAME}
+        PUBLIC
+        ${GFLAGS_LIBRARY} ${GLOG_LIBRARY}
+        ${GTSAM_LIBRARY} ${GTSAM_UNSTABLE_LIBRARY}
+        ${catkin_LIBRARIES}
 )
 
 install(TARGETS aria_common 
