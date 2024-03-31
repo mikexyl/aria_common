@@ -13,20 +13,25 @@ find_package(GTSAM REQUIRED)
 find_package(GTSAM_UNSTABLE REQUIRED)
 
 # find catkin
-find_package(catkin COMPONENTS
-  roscpp
-)
+find_package(rclcpp QUIET)
 
 # if catkin is found, add the catkin include directories
-if(catkin_FOUND)
+if(rclcpp_FOUND)
+        find_package(rosbag2_cpp REQUIRED)
+        find_package(rosbag2_storage REQUIRED)
         set(ROS_SRC
                 src/rosbag_reader.cpp
                 src/rosbag_writer.cpp
         )
+        set(ROS_LIBS
+                rosbag2_cpp::rosbag2_cpp
+                rosbag2_storage::rosbag2_storage
+        )
 else()
         set(ROS_SRC "")
-        set(CATKIN_INCLUDE_DIRS "")
-        set(catkin_LIBRARIES "")
+        set(rclcpp_INCLUDE_DIRS "")
+        set(rclcpp_LIBRARIES "")
+        set(ROS_LIBS "")
 endif()
 
 add_library(${PROJECT_NAME}
@@ -42,13 +47,14 @@ target_include_directories(
         ${GLOG_INCLUDE_DIR}
         ${GTSAM_INCLUDE_DIR}
         ${GTSAM_UNSTABLE_INCLUDE_DIR}
-        ${catkin_INCLUDE_DIRS}
+        ${rclcpp_INCLUDE_DIRS}
 )
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
         ${GFLAGS_LIBRARY} ${GLOG_LIBRARY}
         ${GTSAM_LIBRARY} ${GTSAM_UNSTABLE_LIBRARY}
-        ${catkin_LIBRARIES}
+        ${rclcpp_LIBRARIES}
+        ${ROS_LIBS}
 )
 
 install(TARGETS aria_common 

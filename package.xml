@@ -9,7 +9,6 @@
 
   <buildtool_depend>cmake</buildtool_depend>
 
-  <depend>gtsam</depend>
   <depend>libgflags-dev</depend>
   <depend>libgoogle-glog-dev</depend>
 

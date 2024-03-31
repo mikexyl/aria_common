@@ -2,97 +2,87 @@
 #define ARIA_DOPT_ROS_ROSBAG_READER_H_
 
 #include <glog/logging.h>
-#include <ros/ros.h>
-#include <rosbag/bag.h>
-#include <rosbag/view.h>
+
+#include <functional>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/serialization.hpp>
+#include <rosbag2_cpp/readers/sequential_reader.hpp>
+#include <rosbag2_cpp/typesupport_helpers.hpp>
 
 namespace aria {
 
-class GenericCallback {
- public:
-  virtual ~GenericCallback() {}
-  virtual void call(rosbag::MessageInstance const m) = 0;
-};
-
 template <typename M>
-class TypedCallback : public GenericCallback {
+using TypedCallback = std::function<void(const std::shared_ptr<M>)>;
+
+class RosbagReader : public rclcpp::Node {
  public:
-  using Callback = std::function<void(const boost::shared_ptr<M const>&)>;
-  TypedCallback(Callback callback) : callback_(callback) {}
-
-  void call(rosbag::MessageInstance const m) override {
-    boost::shared_ptr<M const> msg = m.instantiate<M>();
-    CHECK(msg != nullptr)
-        << "Failed to instantiate message, are message defs consistent?";
-    if (msg != nullptr) {
-      callback_(msg);
-    }
-  }
-
- private:
-  Callback callback_;
-};
-
-class RosbagReader {
- public:
-  RosbagReader(const std::string& bag_file);
+  explicit RosbagReader(const std::string& bag_file)
+      : Node("rosbag2_reader"), bag_file_path_(bag_file) {}
 
   template <typename M>
-  void registerCallback(const std::string& topic,
-                        typename TypedCallback<M>::Callback callback) {
-    callbacks_[topic] = std::make_unique<TypedCallback<M>>(callback);
+  void registerCallback(const std::string& topic, TypedCallback<M> callback) {
+    callbacks_[topic] =
+        [callback](std::shared_ptr<rosbag2_storage::SerializedBagMessage> msg) {
+          // convert serialized bag message to a serialized message
+          rclcpp::SerializedMessage serialized_msg(*msg->serialized_data);
+
+          // deserialize the message
+          auto typed_msg = std::make_shared<M>();
+          rclcpp::Serialization<M> serialization;
+          serialization.deserialize_message(&serialized_msg, typed_msg.get());
+          callback(typed_msg);
+        };
   }
 
   void openBag() {
     try {
-      bag_.open(bag_file_path_, rosbag::bagmode::Read);
-      // print all topics
-    } catch (const rosbag::BagException& e) {
-      LOG(FATAL) << "Failed to open bag file: " << e.what();
+      auto storage_options = rosbag2_storage::StorageOptions();
+      storage_options.uri = bag_file_path_;
+      storage_options.storage_id = "sqlite3";
+      auto converter_options = rosbag2_cpp::ConverterOptions();
+      reader_.open(storage_options, converter_options);
+      // Listing topics is a more manual process in rosbag2
+    } catch (const std::runtime_error& e) {
+      RCLCPP_FATAL(this->get_logger(), "Failed to open bag file: %s", e.what());
     }
-
-    std::vector<std::string> topics;
-    for (const auto& cb : callbacks_) {
-      topics.push_back(cb.first);
-    }
-
-    view_.reset(new rosbag::View(bag_, rosbag::TopicQuery(topics)));
-    it_ = view_->begin();
   }
 
   void readBag();
 
-  void closeBag() { bag_.close(); }
+  void closeBag() { reader_.close(); }
 
   bool readOnce() {
-    const rosbag::MessageInstance& m = *it_;
-    VLOG(1) << "Received message on topic: " << m.getTopic();
-    if (!shutdown_ and callbacks_.count(m.getTopic())) {
-      VLOG(1) << "calling callback for topic: " << m.getTopic();
-      CHECK(callbacks_[m.getTopic()] != nullptr);
-      callbacks_[m.getTopic()]->call(m);
-    }
-    ++it_;
+    if (reader_.has_next()) {
+      auto message = reader_.read_next();
 
-    return it_ != view_->end();
+      if (callbacks_.find(message->topic_name) != callbacks_.end()) {
+        RCLCPP_INFO(this->get_logger(),
+                    "Received message on topic: %s",
+                    message->topic_name.c_str());
+        callbacks_[message->topic_name](message);
+      }
+
+      return true;
+    }
+
+    return false;
   }
 
   void shutdown() {
-    shutdown_ = true;
+    this->shutdown_ = true;
     closeBag();
-    view_.reset();
-    it_ = rosbag::View::iterator();
   }
 
  private:
   std::string bag_file_path_;
-  rosbag::Bag bag_;
-  std::shared_ptr<rosbag::View> view_;
-  rosbag::View::iterator it_;
-  std::map<std::string, std::unique_ptr<GenericCallback>> callbacks_;
-
+  rosbag2_cpp::readers::SequentialReader reader_;
+  std::map<std::string,
+           std::function<void(
+               std::shared_ptr<rosbag2_storage::SerializedBagMessage>)>>
+      callbacks_;
   std::atomic<bool> shutdown_{false};
 };
+
 }  // namespace aria
 
 #endif  // ARIA_DOPT_ROS_ROSBAG_READER_H_

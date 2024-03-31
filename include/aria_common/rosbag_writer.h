@@ -1,38 +1,53 @@
 #ifndef ARIA_DOPT_ROS_ROSBAG_WRITER_H_
 #define ARIA_DOPT_ROS_ROSBAG_WRITER_H_
 
-// src/recorder.cpp
-#include <ros/ros.h>
-#include <rosbag/bag.h>
-#include <std_msgs/String.h>
-
+#include <iostream>
+#include <memory>
+#include <rclcpp/clock.hpp>
+#include <rclcpp/serialization.hpp>
+#include <rclcpp/serialized_message.hpp>
+#include <rclcpp/time.hpp>
+#include <rosbag2_cpp/typesupport_helpers.hpp>
+#include <rosbag2_cpp/writers/sequential_writer.hpp>
+#include <rosidl_runtime_cpp/message_type_support_decl.hpp>
 #include <string>
-#include <vector>
 
 namespace aria {
 
 class RosbagWriter {
  public:
-  RosbagWriter(const std::string& bag_file_name) {
-    bag_.open(bag_file_name, rosbag::bagmode::Write);
+  explicit RosbagWriter(const std::string& bag_file_name) {
+    auto writer_options = rosbag2_storage::StorageOptions();
+    writer_options.uri = bag_file_name;
+    writer_options.storage_id = "sqlite3";
+    auto converter_options = rosbag2_cpp::ConverterOptions();
+    writer_.open(writer_options, converter_options);
   }
-
-  ~RosbagWriter() { bag_.close(); }
 
   template <typename M>
-  void addMessage(const std::string& topic,
-                  const M& message,
-                  const ros::Time& time = ros::Time::now()) {
-    // check bag is valid
-    if (bag_.isOpen()) {
-      bag_.write(topic, time, message);
-    } else {
-      std::cerr << "Bag is not open!" << std::endl;
-    }
+  void addMessage(
+      const std::string& topic,
+      const M& message,
+      const rclcpp::Time& time = rclcpp::Clock(RCL_SYSTEM_TIME).now()) {
+    rclcpp::Serialization<M> serialization;
+    rclcpp::SerializedMessage serialized_msg;
+    serialization.serialize_message(&message, &serialized_msg);
+
+    std::shared_ptr<rosbag2_storage::SerializedBagMessage> bag_message(
+        new rosbag2_storage::SerializedBagMessage());
+    bag_message->topic_name = topic;
+    bag_message->time_stamp = time.nanoseconds();
+    bag_message->serialized_data = std::shared_ptr<rcutils_uint8_array_t>(
+        &serialized_msg.get_rcl_serialized_message(),
+        [](rcutils_uint8_array_t* /*unused*/) {});
+
+    writer_.write(bag_message);
   }
 
+  ~RosbagWriter() { writer_.close(); }
+
  private:
-  rosbag::Bag bag_;
+  rosbag2_cpp::writers::SequentialWriter writer_;
 };
 
 }  // namespace aria
