@@ -27,8 +27,18 @@ class RosbagWriter {
   template <typename M>
   void addMessage(
       const std::string& topic,
+      const std::string& type,
       const M& message,
       const rclcpp::Time& time = rclcpp::Clock(RCL_SYSTEM_TIME).now()) {
+    if (created_topics_.find(topic) == created_topics_.end()) {
+      auto topic_meta_data = rosbag2_storage::TopicMetadata();
+      topic_meta_data.name = topic;
+      // get type string
+      topic_meta_data.type = type;
+      writer_.create_topic(topic_meta_data);
+      created_topics_.insert(topic);
+    }
+
     rclcpp::Serialization<M> serialization;
     rclcpp::SerializedMessage serialized_msg;
     serialization.serialize_message(&message, &serialized_msg);
@@ -48,6 +58,8 @@ class RosbagWriter {
 
  private:
   rosbag2_cpp::writers::SequentialWriter writer_;
+
+  std::set<std::string> created_topics_;
 };
 
 }  // namespace aria
