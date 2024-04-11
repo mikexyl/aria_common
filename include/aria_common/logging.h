@@ -6,6 +6,8 @@
 #include <filesystem>
 #include <fstream>
 
+#define HL(msg) (std::string("<: ") + (msg) + std::string(" /:>").c_str())
+
 namespace aria {
 inline std::filesystem::path initializeOutputsDirectory(
     const std::string& output_dir,
