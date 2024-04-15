@@ -1,35 +1,54 @@
 #ifndef ARIA_COMMON_LOGGING_H_
 #define ARIA_COMMON_LOGGING_H_
 
-#include <glog/logging.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/spdlog.h>
 
 #include <filesystem>
-#include <fstream>
+#include <string>
 
 #define HL(msg) (std::string("<: ") + (msg) + std::string(" /:>").c_str())
 
-namespace aria {
-inline std::filesystem::path initializeOutputsDirectory(
-    const std::string& output_dir,
-    const std::string& tag) {
-  // get a timestamp
-  auto now = std::chrono::system_clock::now();
-  auto result = std::chrono::system_clock::to_time_t(now);
-  // Create a directory path with the timestamp
-  auto log_dir = std::filesystem::path(output_dir) / std::to_string(result);
-  // Create the directory and any necessary parent directories
-  std::filesystem::create_directories(log_dir / "logs");
-  std::filesystem::create_directories(log_dir / "graphs");
-  // Create a dummy file with the tag as the name
-  std::ofstream tag_file((log_dir / tag).string());
+#define LOG_FATAL(msg)                                      \
+  spdlog::critical("Fatal error: {} at {}:{}, function {}", \
+                   msg,                                     \
+                   __FILE__,                                \
+                   __LINE__,                                \
+                   __PRETTY_FUNCTION__);                    \
+  std::abort();
 
-  FLAGS_log_dir = (log_dir / "logs").string();
-  // Set the logging flags before initialization
-  FLAGS_alsologtostderr = true;
-  FLAGS_colorlogtostderr = true;
+// cancel glog's CHECK macro
+#ifdef CHECK
+#undef CHECK
+#endif
 
-  return log_dir;
-}
-}  // namespace aria
+#define CHECK_LT(a, b) CHECK((a) < (b))
+
+#define CHECK_NE(a, b) CHECK((a) != (b))
+
+#define CHECK_EQ(a, b) CHECK((a) == (b))
+
+#define CHECK_GE(a, b) CHECK((a) >= (b))
+
+#define CHECK_GT(a, b) CHECK((a) > (b))
+
+#define CHECK(expr)                                            \
+  if (!(expr)) {                                               \
+    spdlog::critical("Check failed: {} at {}:{}, function {}", \
+                     #expr,                                    \
+                     __FILE__,                                 \
+                     __LINE__,                                 \
+                     __PRETTY_FUNCTION__);                     \
+    std::abort();                                              \
+  }
+
+namespace aria::logging {
+
+void initialize_logger(std::filesystem::path log_dir, std::string name);
+
+std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
+                                                 const std::string& tag);
+
+}  // namespace aria::logging
 
 #endif  // ARIA_COMMON_LOGGING_H_

@@ -9,8 +9,7 @@
 
   <buildtool_depend>cmake</buildtool_depend>
 
-  <depend>libgflags-dev</depend>
-  <depend>libgoogle-glog-dev</depend>
+  <depend>libspdlog-dev</depend>
 
   <export>
     <!-- Specify that this is not really a catkin package-->

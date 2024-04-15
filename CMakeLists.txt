@@ -7,15 +7,17 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-find_package(Glog REQUIRED)
-find_package(Gflags REQUIRED)
+# find gtsam
 find_package(GTSAM REQUIRED)
 find_package(GTSAM_UNSTABLE REQUIRED)
 
-# find catkin
+# find spdlog
+find_package(spdlog REQUIRED)
+
+# find ros2
 find_package(rclcpp QUIET)
 
-# if catkin is found, add the catkin include directories
+# if ros is found, add the ros include directories
 if(rclcpp_FOUND)
         find_package(rosbag2_cpp REQUIRED)
         find_package(rosbag2_storage REQUIRED)
@@ -35,29 +37,27 @@ else()
 endif()
 
 add_library(${PROJECT_NAME}
-    src/dependency_tracker.cpp
-    ${ROS_SRC}
+        src/logging.cpp
+        ${ROS_SRC}
 )
 target_include_directories(
         ${PROJECT_NAME}
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
-        ${GFLAGS_INCLUDE_DIR}
-        ${GLOG_INCLUDE_DIR}
         ${GTSAM_INCLUDE_DIR}
         ${GTSAM_UNSTABLE_INCLUDE_DIR}
         ${rclcpp_INCLUDE_DIRS}
+        ${spdlog_INCLUDE_DIRS}
 )
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
-        ${GFLAGS_LIBRARY} ${GLOG_LIBRARY}
         ${GTSAM_LIBRARY} ${GTSAM_UNSTABLE_LIBRARY}
         ${rclcpp_LIBRARIES}
-        ${ROS_LIBS}
+        ${ROS_LIBS} spdlog::spdlog
 )
 
-install(TARGETS aria_common 
+install(TARGETS aria_common
         EXPORT aria_commonTargets
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -67,28 +67,30 @@ install(TARGETS aria_common
 install(DIRECTORY include/aria_common
         DESTINATION include)
 
+# Configure the .in file to create the actual .cmake file
+configure_file(
+        "${CMAKE_SOURCE_DIR}/cmake/aria_commonConfig.cmake.in"
+        "${CMAKE_BINARY_DIR}/aria_commonConfig.cmake"
+        @ONLY
+)
+
+# You might want to install the generated config file so it can be used by other projects
+install(FILES "${CMAKE_BINARY_DIR}/aria_commonConfig.cmake"
+        DESTINATION lib/cmake/aria_common)
+
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/aria_common/aria_commonConfigVersion.cmake"
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY AnyNewerVersion
+        "${CMAKE_CURRENT_BINARY_DIR}/aria_common/aria_commonConfigVersion.cmake"
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY AnyNewerVersion
 )
 
 export(TARGETS aria_common
-       NAMESPACE aria::
-       FILE "${CMAKE_CURRENT_BINARY_DIR}/aria_common/aria_commonTargets.cmake")
-
-configure_file(cmake/aria_commonConfig.cmake
-    "${CMAKE_CURRENT_BINARY_DIR}/aria_common/aria_commonConfig.cmake"
-    COPYONLY)
+        NAMESPACE aria::
+        FILE "${CMAKE_CURRENT_BINARY_DIR}/aria_common/aria_commonTargets.cmake")
 
 set(ConfigPackageLocation lib/cmake/aria_common)
 install(EXPORT aria_commonTargets
         FILE aria_commonTargets.cmake
         NAMESPACE aria_common::
-        DESTINATION ${ConfigPackageLocation})
-
-install(FILES
-        cmake/aria_commonConfig.cmake
-        "${CMAKE_CURRENT_BINARY_DIR}/aria_common/aria_commonConfigVersion.cmake"
         DESTINATION ${ConfigPackageLocation})
