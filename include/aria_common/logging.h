@@ -42,6 +42,12 @@
     std::abort();                                              \
   }
 
+inline void LOG_DATA(std::string key, bool success, std::string msg) {
+  auto data_logger = spdlog::get("data_logger");
+  key += success ? "_success" : "";
+  data_logger->info(HL(key) + " " + msg);
+}
+
 namespace aria::logging {
 
 void initialize_logger(std::filesystem::path log_dir, std::string name);

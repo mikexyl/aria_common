@@ -12,6 +12,8 @@ namespace aria::logging {
 
 void initialize_logger(std::filesystem::path log_dir, std::string name) {
   // Create sinks for each level of logging you need
+  auto debug_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
+      log_dir / (name + "_debug.log"), true);
   auto info_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
       log_dir / (name + "_info.log"), true);
   auto warn_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
@@ -22,6 +24,7 @@ void initialize_logger(std::filesystem::path log_dir, std::string name) {
       log_dir / (name + "_fatal.log"), true);
 
   // Set the level for each sink
+  debug_sink->set_level(spdlog::level::debug);
   info_sink->set_level(spdlog::level::info);
   warn_sink->set_level(spdlog::level::warn);
   error_sink->set_level(spdlog::level::err);
@@ -29,10 +32,11 @@ void initialize_logger(std::filesystem::path log_dir, std::string name) {
 
   // Create a console sink
   auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+  console_sink->set_level(spdlog::level::info);
 
   // Create a logger with multiple sinks
   std::vector<spdlog::sink_ptr> sinks{
-      info_sink, warn_sink, error_sink, console_sink};
+      debug_sink, info_sink, warn_sink, error_sink, console_sink};
   auto logger =
       // TODO: the logger's name probably should be the experiment name
       std::make_shared<spdlog::logger>(name, begin(sinks), end(sinks));
@@ -45,6 +49,20 @@ void initialize_logger(std::filesystem::path log_dir, std::string name) {
   auto fatal_logger = std::make_shared<spdlog::logger>(
       "failure_signal_logger", begin(fatal_sinks), end(fatal_sinks));
   spdlog::register_logger(fatal_logger);
+
+  // register a data output logger
+  auto data_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
+      log_dir / (name + "_data.log"), true);
+  data_sink->set_level(spdlog::level::debug);
+
+  std::vector<spdlog::sink_ptr> data_sinks{data_sink, console_sink};
+  auto data_logger = std::make_shared<spdlog::logger>(
+      "data_logger", begin(data_sinks), end(data_sinks));
+  spdlog::register_logger(data_logger);
+
+  spdlog::flush_every(std::chrono::seconds(3));  // Auto-flush every 3 seconds
+  spdlog::set_pattern(
+      "[%Y-%m-%d %H:%M:%S.%e] [%^%L%$] %v");  // Custom log pattern
 }
 
 void handleFailureSignal(int signal) {
@@ -79,17 +97,6 @@ std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
 
   // Create a dummy file with the tag as the name
   std::ofstream tag_file((log_dir / tag));
-
-  // Initialize spdlog with file sink
-  auto file_logger = spdlog::basic_logger_mt(
-      "file_logger", (log_dir / "logs" / "log.txt").string());
-
-  // Set spdlog configuration
-  file_logger->set_level(spdlog::level::info);  // Setting log level
-  spdlog::set_default_logger(file_logger);  // Setting this as default logger
-  spdlog::flush_every(std::chrono::seconds(3));  // Auto-flush every 3 seconds
-  spdlog::set_pattern(
-      "[%Y-%m-%d %H:%M:%S.%e] [%^%L%$] %v");  // Custom log pattern
 
   initialize_logger(log_dir / "logs", tag);
 
