@@ -36,7 +36,7 @@ void initialize_logger(std::filesystem::path log_dir, std::string name) {
 
   // Create a logger with multiple sinks
   std::vector<spdlog::sink_ptr> sinks{
-      debug_sink, info_sink, warn_sink, error_sink, console_sink};
+      debug_sink, info_sink, warn_sink, error_sink, fatal_sink, console_sink};
   auto logger =
       // TODO: the logger's name probably should be the experiment name
       std::make_shared<spdlog::logger>(name, begin(sinks), end(sinks));

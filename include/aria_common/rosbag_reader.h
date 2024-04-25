@@ -54,9 +54,6 @@ class RosbagReader : public rclcpp::Node {
       auto message = reader_.read_next();
 
       if (callbacks_.find(message->topic_name) != callbacks_.end()) {
-        RCLCPP_INFO(this->get_logger(),
-                    "Received message on topic: %s",
-                    message->topic_name.c_str());
         callbacks_[message->topic_name](message);
       }
 

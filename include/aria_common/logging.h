@@ -5,6 +5,7 @@
 #include <spdlog/spdlog.h>
 
 #include <filesystem>
+#include <opencv2/core.hpp>
 #include <string>
 
 #define HL(msg) (std::string("<: ") + (msg) + std::string(" /:>").c_str())
@@ -46,6 +47,14 @@ inline void LOG_DATA(std::string key, bool success, std::string msg) {
   auto data_logger = spdlog::get("data_logger");
   key += success ? "_success" : "";
   data_logger->info(HL(key) + " " + msg);
+}
+
+inline std::string printKeyPoints(std::vector<cv::KeyPoint> keypoints) {
+  std::stringstream ss;
+  for (const auto& kp : keypoints) {
+    ss << kp.pt << " ";
+  }
+  return ss.str();
 }
 
 namespace aria::logging {

@@ -14,6 +14,9 @@ find_package(GTSAM_UNSTABLE REQUIRED)
 # find spdlog
 find_package(spdlog REQUIRED)
 
+# find opencv
+find_package(OpenCV REQUIRED)
+
 # find ros2
 find_package(rclcpp QUIET)
 
@@ -49,12 +52,14 @@ target_include_directories(
         ${GTSAM_UNSTABLE_INCLUDE_DIR}
         ${rclcpp_INCLUDE_DIRS}
         ${spdlog_INCLUDE_DIRS}
+        ${OpenCV_INCLUDE_DIRS}
 )
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
         ${GTSAM_LIBRARY} ${GTSAM_UNSTABLE_LIBRARY}
         ${rclcpp_LIBRARIES}
         ${ROS_LIBS} spdlog::spdlog
+        ${OpenCV_LIBS}
 )
 
 install(TARGETS aria_common
