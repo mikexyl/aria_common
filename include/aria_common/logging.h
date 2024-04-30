@@ -10,12 +10,12 @@
 
 #define HL(msg) (std::string("<: ") + (msg) + std::string(" /:>").c_str())
 
-#define LOG_FATAL(msg)                                      \
-  spdlog::critical("Fatal error: {} at {}:{}, function {}", \
-                   msg,                                     \
-                   __FILE__,                                \
-                   __LINE__,                                \
-                   __PRETTY_FUNCTION__);                    \
+#define LOG_FATAL(msg)                                     \
+  SPDLOG_CRITICAL("Fatal error: {} at {}:{}, function {}", \
+                  msg,                                     \
+                  __FILE__,                                \
+                  __LINE__,                                \
+                  __PRETTY_FUNCTION__);                    \
   std::abort();
 
 // cancel glog's CHECK macro
@@ -47,6 +47,8 @@ inline void LOG_DATA(std::string key, bool success, std::string msg) {
   auto data_logger = spdlog::get("data_logger");
   key += success ? "_success" : "";
   data_logger->info(HL(key) + " " + msg);
+  // also log to default logger
+  spdlog::info(HL(key) + " " + msg);
 }
 
 inline std::string printKeyPoints(std::vector<cv::KeyPoint> keypoints,
@@ -66,10 +68,14 @@ inline std::string printKeyPointMatches(std::vector<cv::KeyPoint> keypoints0,
                                         std::vector<bool> mask = {}) {
   CHECK(keypoints0.size() == keypoints1.size());
 
-  if (mask.size()) CHECK(mask.size() == keypoints0.size())
+  if (mask.size()) {
+    CHECK(mask.size() == keypoints0.size())
+  } else {
+    mask = std::vector<bool>(keypoints0.size(), true);
+  }
 
   std::stringstream ss;
-  
+
   if (key.size()) ss << key << " ";
   for (size_t i = 0; i < keypoints0.size(); i++) {
     if (mask[i]) {
