@@ -17,7 +17,7 @@ find_package(spdlog REQUIRED)
 # find opencv
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(g2o REQUIRED)
+find_package(G2O REQUIRED)
 
 # find ros2
 find_package(rclcpp QUIET)
@@ -43,7 +43,7 @@ else()
         set(ROS_LIBS "")
 endif()
 
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME} SHARED
         src/logging.cpp
         ${ROS_SRC}
 )
@@ -57,6 +57,7 @@ target_include_directories(
         ${rclcpp_INCLUDE_DIRS}
         ${spdlog_INCLUDE_DIRS}
         ${OpenCV_INCLUDE_DIRS}
+        ${G2O_INCLUDE_DIR}
 )
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
@@ -65,7 +66,9 @@ target_link_libraries(${PROJECT_NAME}
         ${ROS_LIBS} spdlog::spdlog
         ${OpenCV_LIBS}
         Eigen3::Eigen
-        g2o::core g2o::types_sim3
+        ${G2O_CORE_LIBRARY}
+        ${G2O_STUFF_LIBRARY}
+        ${G2O_TYPES_SIM3}
 )
 
 install(TARGETS aria_common
@@ -78,6 +81,9 @@ install(TARGETS aria_common
 install(DIRECTORY include/aria_common
         DESTINATION include)
 
+install (FILES "${CMAKE_SOURCE_DIR}/cmake/FindG2O.cmake"
+        DESTINATION lib/cmake/aria_common)
+
 # Configure the .in file to create the actual .cmake file
 configure_file(
         "${CMAKE_SOURCE_DIR}/cmake/aria_commonConfig.cmake.in"
@@ -85,7 +91,6 @@ configure_file(
         @ONLY
 )
 
-# You might want to install the generated config file so it can be used by other projects
 install(FILES "${CMAKE_BINARY_DIR}/aria_commonConfig.cmake"
         DESTINATION lib/cmake/aria_common)
 
