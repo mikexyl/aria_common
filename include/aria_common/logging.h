@@ -1,6 +1,8 @@
 #ifndef ARIA_COMMON_LOGGING_H_
 #define ARIA_COMMON_LOGGING_H_
 
+#include <fmt/core.h>
+#include <g2o/types/sim3/sim3.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
 
@@ -10,12 +12,12 @@
 
 #define HL(msg) (std::string("<: ") + (msg) + std::string(" /:>").c_str())
 
-#define LOG_FATAL(msg)                                     \
-  SPDLOG_CRITICAL("Fatal error: {} at {}:{}, function {}", \
-                  msg,                                     \
-                  __FILE__,                                \
-                  __LINE__,                                \
-                  __PRETTY_FUNCTION__);                    \
+#define LOG_FATAL(msg)                                   \
+  spdlog::trace("Fatal error: {} at {}:{}, function {}", \
+                msg,                                     \
+                __FILE__,                                \
+                __LINE__,                                \
+                __PRETTY_FUNCTION__);                    \
   std::abort();
 
 // cancel glog's CHECK macro
@@ -33,14 +35,14 @@
 
 #define CHECK_GT(a, b) CHECK((a) > (b))
 
-#define CHECK(expr)                                            \
-  if (!(expr)) {                                               \
-    spdlog::critical("Check failed: {} at {}:{}, function {}", \
-                     #expr,                                    \
-                     __FILE__,                                 \
-                     __LINE__,                                 \
-                     __PRETTY_FUNCTION__);                     \
-    std::abort();                                              \
+#define CHECK(expr)                                         \
+  if (!(expr)) {                                            \
+    spdlog::trace("Check failed: {} at {}:{}, function {}", \
+                  #expr,                                    \
+                  __FILE__,                                 \
+                  __LINE__,                                 \
+                  __PRETTY_FUNCTION__);                     \
+    std::abort();                                           \
   }
 
 inline void LOG_DATA(std::string key, bool success, std::string msg) {
@@ -86,9 +88,29 @@ inline std::string printKeyPointMatches(std::vector<cv::KeyPoint> keypoints0,
   return ss.str();
 }
 
+inline std::string printSim3(g2o::Sim3 gSel) {
+  // quaternion to euler
+  Eigen::Vector3d euler =
+      gSel.rotation().toRotationMatrix().eulerAngles(0, 1, 2);
+
+  // Using fmt::format to format the string with object method calls
+  std::string formatted_string = fmt::format(
+      "{:.1f}, {:.1f}, {:.1f}, {:.1f}, {:.1f}, {:.1f}, "
+      "{:.1f}",
+      euler.x(),
+      euler.y(),
+      euler.z(),
+      gSel.translation().x(),
+      gSel.translation().y(),
+      gSel.translation().z(),
+      gSel.scale());
+
+  return formatted_string;
+}
+
 namespace aria::logging {
 
-void initialize_logger(std::filesystem::path log_dir, std::string name);
+void initializeLogger(std::filesystem::path log_dir, std::string name);
 
 std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
                                                  const std::string& tag);

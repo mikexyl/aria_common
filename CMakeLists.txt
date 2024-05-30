@@ -16,9 +16,13 @@ find_package(spdlog REQUIRED)
 
 # find opencv
 find_package(OpenCV REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(g2o REQUIRED)
 
 # find ros2
 find_package(rclcpp QUIET)
+
+
 
 # if ros is found, add the ros include directories
 if(rclcpp_FOUND)
@@ -60,6 +64,8 @@ target_link_libraries(${PROJECT_NAME}
         ${rclcpp_LIBRARIES}
         ${ROS_LIBS} spdlog::spdlog
         ${OpenCV_LIBS}
+        Eigen3::Eigen
+        g2o::core g2o::types_sim3
 )
 
 install(TARGETS aria_common

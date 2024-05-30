@@ -8,7 +8,11 @@ set(aria_common_LIBRARIES "${aria_common_CMAKE_DIR}/../../../lib/libaria_common.
 
 find_package(spdlog REQUIRED)
 
+set(g2o_DIR "@g2o_DIR@")
+find_package(g2o REQUIRED)
+
 # Make the above variables available to the finder.
 set(aria_common_FOUND TRUE)
 set(aria_common_INCLUDE_DIRS ${aria_common_INCLUDE_DIRS} ${spdlog_INCLUDE_DIRS} CACHE STRING "Aria Common include directories")
-set(aria_common_LIBRARIES ${aria_common_LIBRARIES} spdlog::spdlog CACHE STRING "Aria Common libraries")
+set(aria_common_LIBRARIES ${aria_common_LIBRARIES} spdlog::spdlog g2o::core g2o::types_sim3 g2o::types_slam3d g2o::opengl_helper CACHE STRING "Aria Common libraries")
+

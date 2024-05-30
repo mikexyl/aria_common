@@ -10,7 +10,7 @@
 
 namespace aria::logging {
 
-void initialize_logger(std::filesystem::path log_dir, std::string name) {
+void initializeLogger(std::filesystem::path log_dir, std::string name) {
   // Create sinks for each level of logging you need
   auto debug_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
       log_dir / (name + "_debug.log"), true);
@@ -24,7 +24,7 @@ void initialize_logger(std::filesystem::path log_dir, std::string name) {
       log_dir / (name + "_fatal.log"), true);
 
   // Set the level for each sink
-  debug_sink->set_level(spdlog::level::debug);
+  debug_sink->set_level(spdlog::level::trace);
   info_sink->set_level(spdlog::level::info);
   warn_sink->set_level(spdlog::level::warn);
   error_sink->set_level(spdlog::level::err);
@@ -99,7 +99,7 @@ std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
   // Create a dummy file with the tag as the name
   std::ofstream tag_file((log_dir / tag));
 
-  initialize_logger(log_dir / "logs", tag);
+  initializeLogger(log_dir / "logs", tag);
 
   return log_dir;
 }
