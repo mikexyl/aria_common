@@ -30,6 +30,8 @@ class RosbagWriter {
       const std::string& type,
       const M& message,
       const rclcpp::Time& time = rclcpp::Clock(RCL_SYSTEM_TIME).now()) {
+    std::lock_guard<std::mutex> lock(mutex_);
+
     if (created_topics_.find(topic) == created_topics_.end()) {
       auto topic_meta_data = rosbag2_storage::TopicMetadata();
       topic_meta_data.name = topic;
@@ -60,6 +62,8 @@ class RosbagWriter {
   rosbag2_cpp::writers::SequentialWriter writer_;
 
   std::set<std::string> created_topics_;
+
+  std::mutex mutex_;
 };
 
 }  // namespace aria

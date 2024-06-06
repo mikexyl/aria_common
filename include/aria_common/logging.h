@@ -13,7 +13,7 @@
 #define HL(msg) (std::string("<: ") + (msg) + std::string(" /:>").c_str())
 
 #define LOG_FATAL(msg)                                   \
-  spdlog::trace("Fatal error: {} at {}:{}, function {}", \
+  spdlog::critical("Fatal error: {} at {}:{}, function {}", \
                 msg,                                     \
                 __FILE__,                                \
                 __LINE__,                                \
@@ -37,7 +37,7 @@
 
 #define CHECK(expr)                                         \
   if (!(expr)) {                                            \
-    spdlog::trace("Check failed: {} at {}:{}, function {}", \
+    spdlog::critical("Check failed: {} at {}:{}, function {}", \
                   #expr,                                    \
                   __FILE__,                                 \
                   __LINE__,                                 \

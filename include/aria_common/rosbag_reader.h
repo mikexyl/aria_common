@@ -1,6 +1,8 @@
 #ifndef ARIA_DOPT_ROS_ROSBAG_READER_H_
 #define ARIA_DOPT_ROS_ROSBAG_READER_H_
 
+#include <spdlog/spdlog.h>
+
 #include <functional>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/serialization.hpp>
@@ -39,7 +41,7 @@ class RosbagReader : public rclcpp::Node {
       storage_options.storage_id = "sqlite3";
       auto converter_options = rosbag2_cpp::ConverterOptions();
       reader_.open(storage_options, converter_options);
-      // Listing topics is a more manual process in rosbag2
+
     } catch (const std::runtime_error& e) {
       RCLCPP_FATAL(this->get_logger(), "Failed to open bag file: %s", e.what());
     }

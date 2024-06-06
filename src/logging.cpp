@@ -40,7 +40,7 @@ void initializeLogger(std::filesystem::path log_dir, std::string name) {
   auto logger =
       // TODO: the logger's name probably should be the experiment name
       std::make_shared<spdlog::logger>(name, begin(sinks), end(sinks));
-  logger->set_level(spdlog::level::debug);
+  logger->set_level(spdlog::level::trace);
 
   // Register it globally
   spdlog::register_logger(logger);

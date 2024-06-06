@@ -3,8 +3,8 @@ get_filename_component(aria_common_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
 # Define the location of the headers and libraries.
 # Paths can be configured using configure_file in CMakeLists.txt
-set(aria_common_INCLUDE_DIRS "${aria_common_CMAKE_DIR}/../../../include")
-set(aria_common_LIBRARIES "${aria_common_CMAKE_DIR}/../../../lib/libaria_common.so")
+set(aria_common_INCLUDE_DIR "${aria_common_CMAKE_DIR}/../../../include")
+set(aria_common_LIBRARY "${aria_common_CMAKE_DIR}/../../../lib/libaria_common.so")
 
 list(APPEND CMAKE_MODULE_PATH "${aria_common_CMAKE_DIR}")
 
@@ -13,8 +13,12 @@ find_package(spdlog REQUIRED)
 set(G2O_ROOT "@G2O_ROOT@")
 find_package(G2O REQUIRED)
 
+find_package(OpenCV REQUIRED)
+
 # Make the above variables available to the finder.
 set(aria_common_FOUND TRUE)
-set(aria_common_INCLUDE_DIRS ${aria_common_INCLUDE_DIRS} ${spdlog_INCLUDE_DIRS} ${G2O_INCLUDE_DIR} CACHE STRING "Aria Common include directories")
-set(aria_common_LIBRARIES ${aria_common_LIBRARIES} spdlog::spdlog ${G2O_CORE_LIBRARY} ${G2O_STUFF_LIBRARY} ${G2O_TYPES_SIM3} CACHE STRING "Aria Common libraries")
+set(aria_common_INCLUDE_DIRS ${aria_common_INCLUDE_DIR} ${spdlog_INCLUDE_DIRS} ${G2O_INCLUDE_DIR} ${OpenCV_INCLUDE_DIRS} CACHE STRING "Aria Common include directories")
+set(aria_common_LIBRARIES ${aria_common_LIBRARY} spdlog::spdlog ${G2O_CORE_LIBRARY} ${G2O_STUFF_LIBRARY} ${G2O_TYPES_SIM3} ${OpenCV_LIBRARIES} CACHE STRING "Aria Common libraries")
 
+message(STATUS "Found Aria Common: ${aria_common_LIBRARIES}")
+message(STATUS "Aria Common include dirs: ${aria_common_INCLUDE_DIRS}")
