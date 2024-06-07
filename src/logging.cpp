@@ -40,7 +40,9 @@ void initializeLogger(std::filesystem::path log_dir, std::string name) {
   auto logger =
       // TODO: the logger's name probably should be the experiment name
       std::make_shared<spdlog::logger>(name, begin(sinks), end(sinks));
-  logger->set_level(spdlog::level::trace);
+  logger->set_level(spdlog::level::debug);
+  logger->flush_on(
+      spdlog::level::info);  // Only flush on errors (not info or debug
 
   // Register it globally
   spdlog::register_logger(logger);
@@ -49,6 +51,8 @@ void initializeLogger(std::filesystem::path log_dir, std::string name) {
   std::vector<spdlog::sink_ptr> fatal_sinks{fatal_sink, console_sink};
   auto fatal_logger = std::make_shared<spdlog::logger>(
       "failure_signal_logger", begin(fatal_sinks), end(fatal_sinks));
+  fatal_logger->set_level(spdlog::level::critical);
+  fatal_logger->flush_on(spdlog::level::critical);
   spdlog::register_logger(fatal_logger);
 
   // register a data output logger
