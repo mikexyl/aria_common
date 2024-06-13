@@ -12,12 +12,12 @@
 
 #define HL(msg) (std::string("<: ") + (msg) + std::string(" /:>").c_str())
 
-#define LOG_FATAL(msg)                                   \
+#define LOG_FATAL(msg)                                      \
   spdlog::critical("Fatal error: {} at {}:{}, function {}", \
-                msg,                                     \
-                __FILE__,                                \
-                __LINE__,                                \
-                __PRETTY_FUNCTION__);                    \
+                   msg,                                     \
+                   __FILE__,                                \
+                   __LINE__,                                \
+                   __PRETTY_FUNCTION__);                    \
   std::abort();
 
 // cancel glog's CHECK macro
@@ -35,15 +35,18 @@
 
 #define CHECK_GT(a, b) CHECK((a) > (b))
 
-#define CHECK(expr)                                         \
-  if (!(expr)) {                                            \
-    spdlog::critical("Check failed: {} at {}:{}, function {}", \
-                  #expr,                                    \
-                  __FILE__,                                 \
-                  __LINE__,                                 \
-                  __PRETTY_FUNCTION__);                     \
-    std::abort();                                           \
+#define CHECK_MSG(expr, msg)                                       \
+  if (!(expr)) {                                                   \
+    spdlog::critical("Check failed: {} at {}:{}, function {}, {}", \
+                     #expr,                                        \
+                     __FILE__,                                     \
+                     __LINE__,                                     \
+                     __PRETTY_FUNCTION__,                          \
+                     msg);                                         \
+    std::abort();                                                  \
   }
+
+#define CHECK(expr) CHECK_MSG(expr, "")
 
 inline void LOG_DATA(std::string key, bool success, std::string msg) {
   auto data_logger = spdlog::get("data_logger");
