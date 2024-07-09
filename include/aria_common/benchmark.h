@@ -1,6 +1,8 @@
 #ifndef ARIA_COMMON_BENCHMARK_H_
 #define ARIA_COMMON_BENCHMARK_H_
 
+#include <tbb/concurrent_hash_map.h>
+
 #include <boost/timer/timer.hpp>
 #include <map>
 #include <string>
@@ -13,41 +15,60 @@ struct DynamicBenchmarkStats {
   std::string label;
   double mean = 0.0;
   double m2 = 0.0;  // For variance calculation
+  double max = 0.0;
+  double min = 0.0;
   size_t count = 0;
+  std::mutex mutex;
 };
 
 // Global map to store all benchmark statistics
-extern std::map<std::string, DynamicBenchmarkStats> benchmarkStatsMap;
+extern tbb::concurrent_hash_map<std::string, DynamicBenchmarkStats>
+    benchmarkStatsMap;
 
 // Function to calculate and print benchmark statistics
 std::string printBenchmarkStats();
 
+inline void clearBenchmarkStats() { benchmarkStatsMap.clear(); }
+
 inline void updateBenchmarkStats(const std::string& label, double duration) {
-  double duration_ms = duration / 1e6;
-  auto& stats = benchmarkStatsMap[label];
-  stats.label = label;
+  tbb::concurrent_hash_map<std::string, DynamicBenchmarkStats>::accessor a;
+  if (benchmarkStatsMap.insert(a, label)) {
+    a->second.label = label;
+  }
+
+  // Lock the mutex for thread-safe modification
+  std::lock_guard<std::mutex> lock(a->second.mutex);
+
+  auto& stats = a->second;
   stats.count++;
-  double delta = duration_ms - stats.mean;
+  double delta = duration - stats.mean;
   stats.mean += delta / stats.count;
-  stats.m2 += delta * (duration_ms - stats.mean);
+  stats.m2 += delta * (duration - stats.mean);
+
+  if (duration > stats.max) {
+    stats.max = duration;
+  }
+
+  if (duration < stats.min || stats.min == 0) {
+    stats.min = duration;
+  }
 }
 
-#define BENCHMARK(codeBlock, label)                                        \
-  do {                                                                     \
-    std::string label_str(label);                                          \
-    spdlog::info("Benchmarking: " + label_str);                            \
-    boost::timer::cpu_timer timer;                                         \
-    try {                                                                  \
-      codeBlock;                                                           \
-    } catch (const std::exception& e) {                                    \
-      spdlog::error("Benchmarking: " + label_str +                         \
-                    " failed with exception: " + e.what());                \
-      throw;                                                               \
-    }                                                                      \
-    timer.stop();                                                          \
-    auto duration = timer.elapsed().wall;                                  \
-    spdlog::info(label_str + " took " + std::to_string(duration) + " ns"); \
-    updateBenchmarkStats(label, duration);                                 \
+#define BENCHMARK(codeBlock, label)                         \
+  do {                                                      \
+    std::string label_str(label);                           \
+    boost::timer::cpu_timer timer;                          \
+    try {                                                   \
+      codeBlock;                                            \
+    } catch (const std::exception& e) {                     \
+      spdlog::error("Benchmarking: " + label_str +          \
+                    " failed with exception: " + e.what()); \
+      throw;                                                \
+    }                                                       \
+    timer.stop();                                           \
+    auto duration_ns = timer.elapsed().wall;                \
+    auto duration_ms = duration_ns / 1e6;                   \
+    updateBenchmarkStats(label, duration_ms);               \
   } while (0)
 
 }  // namespace aria
