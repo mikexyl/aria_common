@@ -1,6 +1,10 @@
 #ifndef ARIA_COMMON_BENCHMARK_H_
 #define ARIA_COMMON_BENCHMARK_H_
 
+#include <boost/timer/timer.hpp>
+#include <map>
+#include <string>
+
 #include "aria_common/logging.h"
 
 namespace aria {
@@ -18,6 +22,16 @@ extern std::map<std::string, DynamicBenchmarkStats> benchmarkStatsMap;
 // Function to calculate and print benchmark statistics
 std::string printBenchmarkStats();
 
+inline void updateBenchmarkStats(const std::string& label, double duration) {
+  double duration_ms = duration / 1e6;
+  auto& stats = benchmarkStatsMap[label];
+  stats.label = label;
+  stats.count++;
+  double delta = duration_ms - stats.mean;
+  stats.mean += delta / stats.count;
+  stats.m2 += delta * (duration_ms - stats.mean);
+}
+
 #define BENCHMARK(codeBlock, label)                                        \
   do {                                                                     \
     std::string label_str(label);                                          \
@@ -33,12 +47,7 @@ std::string printBenchmarkStats();
     timer.stop();                                                          \
     auto duration = timer.elapsed().wall;                                  \
     spdlog::info(label_str + " took " + std::to_string(duration) + " ns"); \
-    auto& stats = benchmarkStatsMap[label_str];                            \
-    stats.label = label_str;                                               \
-    stats.count++;                                                         \
-    double delta = duration - stats.mean;                                  \
-    stats.mean += delta / stats.count;                                     \
-    stats.m2 += delta * (duration - stats.mean);                           \
+    updateBenchmarkStats(label, duration);                                 \
   } while (0)
 
 }  // namespace aria
