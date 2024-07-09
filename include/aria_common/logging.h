@@ -3,6 +3,8 @@
 
 #include <fmt/core.h>
 #include <g2o/types/sim3/sim3.h>
+#include <gtsam/geometry/Pose3.h>
+#include <gtsam/slam/BetweenFactor.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
 
@@ -47,6 +49,8 @@
   }
 
 #define CHECK(expr) CHECK_MSG(expr, "")
+
+using namespace gtsam;
 
 inline void LOG_DATA(std::string key, bool success, std::string msg) {
   auto data_logger = spdlog::get("data_logger");
@@ -111,7 +115,42 @@ inline std::string printSim3(g2o::Sim3 gSel) {
   return formatted_string;
 }
 
+template <class VALUE>
+inline std::string printValueG2o(const Key& key, const VALUE& value) = delete;
+
+template <>
+inline std::string printValueG2o(const Key& key, const Pose3& value) {
+  std::stringstream ss;
+  ss << "VERTEX_SE3:QUAT " << key << " " << value.x() << " " << value.y() << " "
+     << value.z() << " " << value.rotation().toQuaternion().x() << " "
+     << value.rotation().toQuaternion().y() << " "
+     << value.rotation().toQuaternion().z() << " "
+     << value.rotation().toQuaternion().w();
+
+  return ss.str();
+}
+
+template <class VALUE>
+inline std::string printFactorG2o(const VALUE& factor) = delete;
+
+template <>
+inline std::string printFactorG2o(const BetweenFactor<Pose3>& factor) {
+  std::stringstream ss;
+  ss << "EDGE_SE3:QUAT " << factor.key1() << " " << factor.key2() << " "
+     << factor.measured().x() << " " << factor.measured().y() << " "
+     << factor.measured().z() << " "
+     << factor.measured().rotation().toQuaternion().x() << " "
+     << factor.measured().rotation().toQuaternion().y() << " "
+     << factor.measured().rotation().toQuaternion().z() << " "
+     << factor.measured().rotation().toQuaternion().w() << " "
+     << factor.noiseModel()->sigmas().transpose();
+
+  return ss.str();
+}
+
 namespace aria::logging {
+
+using namespace gtsam;
 
 void initializeLogger(std::filesystem::path log_dir, std::string name);
 

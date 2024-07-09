@@ -45,6 +45,7 @@ endif()
 
 add_library(${PROJECT_NAME} SHARED
         src/logging.cpp
+        src/benchmark.cpp
         ${ROS_SRC}
 )
 target_include_directories(
