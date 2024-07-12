@@ -63,7 +63,7 @@ inline void updateBenchmarkStats(const std::string& label, double duration) {
     } catch (const std::exception& e) {                     \
       spdlog::error("Benchmarking: " + label_str +          \
                     " failed with exception: " + e.what()); \
-      throw;                                                \
+      throw e;                                              \
     }                                                       \
     timer.stop();                                           \
     auto duration_ns = timer.elapsed().wall;                \

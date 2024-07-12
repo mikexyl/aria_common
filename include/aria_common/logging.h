@@ -152,10 +152,58 @@ namespace aria::logging {
 
 using namespace gtsam;
 
+class SpdlogBuf : public std::streambuf {
+ public:
+  SpdlogBuf() = default;
+
+  static SpdlogBuf& instance() {
+    static SpdlogBuf buf;
+    return buf;
+  }
+
+ protected:
+  int overflow(int c) override {
+    if (c != EOF) {
+      buffer_ += static_cast<char>(c);
+      if (c == '\n') {
+        logBuffer();
+      }
+    }
+    return c;
+  }
+
+  std::streamsize xsputn(const char* s, std::streamsize n) override {
+    buffer_.append(s, n);
+    std::string::size_type pos = 0;
+    while ((pos = buffer_.find('\n')) != std::string::npos) {
+      logBuffer(pos + 1);
+    }
+    return n;
+  }
+
+ private:
+  void logBuffer(std::string::size_type length = std::string::npos) {
+    if (length == std::string::npos) {
+      spdlog::info(buffer_);
+      buffer_.clear();
+    } else {
+      spdlog::info(buffer_.substr(0, length));
+      buffer_.erase(0, length);
+    }
+  }
+
+  std::string buffer_;
+};
+
 void initializeLogger(std::filesystem::path log_dir, std::string name);
 
 std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
                                                  const std::string& tag);
+
+inline void redirectCoutToLogger() {
+  std::ostream cout(&SpdlogBuf::instance());
+  std::cout.rdbuf(cout.rdbuf());
+}
 
 }  // namespace aria::logging
 
