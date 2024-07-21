@@ -198,7 +198,8 @@ class SpdlogBuf : public std::streambuf {
 void initializeLogger(std::filesystem::path log_dir, std::string name);
 
 std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
-                                                 const std::string& tag);
+                                                 const std::string& tag,
+                                                 bool use_timestamp = true);
 
 inline void redirectCoutToLogger() {
   std::ostream cout(&SpdlogBuf::instance());

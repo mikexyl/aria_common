@@ -88,14 +88,15 @@ void installFailureSignalHandler() {
 }
 
 std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
-                                                 const std::string& tag) {
+                                                 const std::string& tag,
+                                                 bool use_timestamp) {
   // Get a timestamp
   auto now = std::chrono::system_clock::now();
-  auto result = std::chrono::system_clock::to_time_t(now);
+  auto timestamp = std::chrono::system_clock::to_time_t(now);
 
   // Create a directory path with the timestamp
-  std::filesystem::path log_dir =
-      std::filesystem::path(output_dir) / std::to_string(result);
+  std::filesystem::path log_dir = std::filesystem::path(output_dir);
+  if (use_timestamp) log_dir /= std::to_string(timestamp);
 
   // Create the directory and any necessary parent directories
   std::filesystem::create_directories(log_dir / "logs");
