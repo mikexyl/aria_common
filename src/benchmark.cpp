@@ -10,7 +10,7 @@ tbb::concurrent_hash_map<std::string, DynamicBenchmarkStats> benchmarkStatsMap;
 // Function to calculate and print benchmark statistics
 std::string printBenchmarkStats() {
   std::stringstream ss;
-  ss << std::left << std::setw(20) << "Label" << std::setw(15) << "Mean (ms)"
+  ss << std::left << std::setw(30) << "Label" << std::setw(15) << "Mean (ms)"
      << std::setw(15) << "Std Dev (ms)" << std::setw(15) << "Max (ms)"
      << std::setw(15) << "Min (ms)" << std::setw(10) << "Runs" << std::endl;
   ss << std::string(60, '-') << std::endl;

@@ -3,6 +3,9 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <map>
+#include <set>
+#include <utility>
 
 namespace aria {
 inline size_t secToNsec(float sec) { return static_cast<size_t>(sec * 1e9); }
@@ -11,6 +14,19 @@ inline float nsecToSec(size_t nsec) { return static_cast<float>(nsec / 1e9); }
 // TODO: if we want to use MAC address or something to represent agent's id,
 // uint8_t won't be enough
 using AgentId = uint8_t;
+using AgentIdPair = std::pair<AgentId, AgentId>;
+
+struct AgentIdPairCompare {
+  bool operator()(const AgentIdPair& lhs, const AgentIdPair& rhs) const {
+    return lhs.first < rhs.first ||
+           (lhs.first == rhs.first && lhs.second < rhs.second);
+  }
+};
+
+template <typename T>
+using AgentIdPairMap = std::map<AgentIdPair, T, AgentIdPairCompare>;
+
+using AgentIdPairSet = std::set<AgentIdPair, AgentIdPairCompare>;
 
 }  // namespace aria
 

@@ -63,12 +63,12 @@ inline void updateBenchmarkStats(const std::string& label, double duration) {
     } catch (const std::exception& e) {                     \
       spdlog::error("Benchmarking: " + label_str +          \
                     " failed with exception: " + e.what()); \
-      throw e;                                              \
+      throw;                                                \
     }                                                       \
     timer.stop();                                           \
     auto duration_ns = timer.elapsed().wall;                \
     auto duration_ms = duration_ns / 1e6;                   \
-    updateBenchmarkStats(label, duration_ms);               \
+    aria::updateBenchmarkStats(label, duration_ms);         \
   } while (0)
 
 }  // namespace aria

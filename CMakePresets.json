@@ -1,0 +1,39 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "config-Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "YES",
+        "G2O_ROOT": "${sourceDir}/../g2o/install"
+      }
+    },
+    {
+      "name": "config-Debug",
+      "inherits": "config-Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "build-Release",
+      "configurePreset": "config-Release",
+      "jobs": 12
+    },
+    {
+      "name": "build-Debug",
+      "configurePreset": "config-Debug",
+      "jobs": 12
+    }
+  ]
+}
