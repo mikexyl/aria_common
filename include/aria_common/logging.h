@@ -1,14 +1,16 @@
 #ifndef ARIA_COMMON_LOGGING_H_
 #define ARIA_COMMON_LOGGING_H_
 
-#include <fmt/core.h>
+#include <fmt/format.h>
 #include <g2o/types/sim3/sim3.h>
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
 
 #include <filesystem>
+#include <fstream>
 #include <opencv2/core.hpp>
 #include <string>
 
@@ -52,12 +54,44 @@
 
 using namespace gtsam;
 
-inline void LOG_DATA(std::string key, bool success, std::string msg) {
-  auto data_logger = spdlog::get("data_logger");
-  key += success ? "_success" : "";
-  data_logger->info(HL(key) + " " + msg);
-  // also log to default logger
+namespace aria::logging {
+extern std::string dataFile;
+extern YAML::Node dataRoot;
+extern int FlashDataEveryN;
+extern int FlashDataCounter;
+void flashData();
+}  // namespace aria::logging
+
+template <typename T>
+inline void LOG_DATA(std::string key, T msg) {
+  // convert msg to string
+  std::stringstream ss;
+  ss << msg;
+  auto msg_str = ss.str();
+  LOG_DATA(key, msg_str);
+}
+
+template <>
+inline void LOG_DATA(std::string key, std::string msg) {
   spdlog::info(HL(key) + " " + msg);
+
+  // Check if the key already exists in dataRoot
+  if (!aria::logging::dataRoot[key] ||
+      !aria::logging::dataRoot[key].IsSequence()) {
+    // If the key doesn't exist or is not a sequence, initialize it as a
+    // sequence
+    aria::logging::dataRoot[key] = YAML::Node(YAML::NodeType::Sequence);
+  }
+
+  // Append the message to the sequence
+  aria::logging::dataRoot[key].push_back(msg);
+
+  // Increment the counter
+  aria::logging::FlashDataCounter++;
+  if (aria::logging::FlashDataCounter >= aria::logging::FlashDataEveryN) {
+    // Write the data to the file
+    aria::logging::flashData();
+  }
 }
 
 inline std::string printKeyPoints(std::vector<cv::KeyPoint> keypoints,
@@ -199,11 +233,20 @@ void initializeLogger(std::filesystem::path log_dir, std::string name);
 
 std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
                                                  const std::string& tag,
-                                                 bool use_timestamp = true);
+                                                 bool use_timestamp = true,
+                                                 int flash_data_every_n = 10);
 
 inline void redirectCoutToLogger() {
   std::ostream cout(&SpdlogBuf::instance());
   std::cout.rdbuf(cout.rdbuf());
+}
+
+inline void flashData() {
+  // Write the data to the file
+  std::ofstream fout(dataFile);
+  fout << dataRoot;
+  fout.close();
+  FlashDataCounter = 0;
 }
 
 }  // namespace aria::logging

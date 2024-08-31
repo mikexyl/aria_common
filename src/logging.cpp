@@ -4,12 +4,34 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
+#include <yaml-cpp/yaml.h>
 
 #include <csignal>
 #include <filesystem>
 #include <fstream>
 
 namespace aria::logging {
+
+std::string dataFile = "data.yaml";
+YAML::Node dataRoot;
+int FlashDataEveryN = 10;
+int FlashDataCounter = 0;
+
+void handleFailureSignal(int signal) {
+  auto fatal_logger = spdlog::get("failure_signal_logger");
+  if (fatal_logger) {
+    fatal_logger->critical("Fatal signal: {}", signal);
+  }
+
+  std::_Exit(EXIT_FAILURE);
+}
+
+void installFailureSignalHandler() {
+  std::signal(SIGSEGV, handleFailureSignal);
+  std::signal(SIGABRT, handleFailureSignal);
+  std::signal(SIGFPE, handleFailureSignal);
+  std::signal(SIGILL, handleFailureSignal);
+}
 
 void initializeLogger(std::filesystem::path log_dir, std::string name) {
   // Create sinks for each level of logging you need
@@ -56,40 +78,17 @@ void initializeLogger(std::filesystem::path log_dir, std::string name) {
   fatal_logger->flush_on(spdlog::level::critical);
   spdlog::register_logger(fatal_logger);
 
-  // register a data output logger
-  auto data_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
-      log_dir / (name + "_data.log"), true);
-  data_sink->set_level(spdlog::level::debug);
-
-  std::vector<spdlog::sink_ptr> data_sinks{data_sink, console_sink};
-  auto data_logger = std::make_shared<spdlog::logger>(
-      "data_logger", begin(data_sinks), end(data_sinks));
-  spdlog::register_logger(data_logger);
-
   spdlog::flush_every(std::chrono::seconds(3));  // Auto-flush every 3 seconds
   spdlog::set_pattern(
       "[%Y-%m-%d %H:%M:%S.%e] [%^%L%$] %v");  // Custom log pattern
-}
 
-void handleFailureSignal(int signal) {
-  auto fatal_logger = spdlog::get("failure_signal_logger");
-  if (fatal_logger) {
-    fatal_logger->critical("Fatal signal: {}", signal);
-  }
-
-  std::_Exit(EXIT_FAILURE);
-}
-
-void installFailureSignalHandler() {
-  std::signal(SIGSEGV, handleFailureSignal);
-  std::signal(SIGABRT, handleFailureSignal);
-  std::signal(SIGFPE, handleFailureSignal);
-  std::signal(SIGILL, handleFailureSignal);
+  installFailureSignalHandler();
 }
 
 std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
                                                  const std::string& tag,
-                                                 bool use_timestamp) {
+                                                 bool use_timestamp,
+                                                 int flash_data_every_n) {
   // Get a timestamp
   auto now = std::chrono::system_clock::now();
   auto timestamp = std::chrono::system_clock::to_time_t(now);
@@ -101,6 +100,17 @@ std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
   // Create the directory and any necessary parent directories
   std::filesystem::create_directories(log_dir / "logs");
   std::filesystem::create_directories(log_dir / "graphs");
+  std::filesystem::create_directories(log_dir / "data");
+
+  dataFile = (log_dir / "data" / dataFile).string();
+  if (!std::filesystem::exists(dataFile)) {
+    std::ofstream ofs(dataFile);
+    ofs.close();
+  }
+  dataRoot = YAML::LoadFile(dataFile);
+
+  FlashDataCounter = 0;
+  FlashDataEveryN = flash_data_every_n;
 
   // Create a dummy file with the tag as the name
   std::ofstream tag_file((log_dir / tag));
