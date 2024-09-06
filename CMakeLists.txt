@@ -88,7 +88,7 @@ if(rclcpp_FOUND)
         target_include_directories(
                 ${PROJECT_NAME}_ros
                 PUBLIC
-                ${PROJECT_NAME}
+                ${INCLUDES}
         )
         target_link_libraries(${PROJECT_NAME}_ros
                 PUBLIC
