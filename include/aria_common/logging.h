@@ -2,7 +2,6 @@
 #define ARIA_COMMON_LOGGING_H_
 
 #include <fmt/format.h>
-#include <g2o/types/sim3/sim3.h>
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -13,6 +12,10 @@
 #include <fstream>
 #include <opencv2/core.hpp>
 #include <string>
+
+#ifdef USE_G2O
+#include <g2o/types/sim3/sim3.h>
+#endif
 
 #define HL(msg) (std::string("<: ") + (msg) + std::string(" /:>").c_str())
 
@@ -129,6 +132,7 @@ inline std::string printKeyPointMatches(std::vector<cv::KeyPoint> keypoints0,
   return ss.str();
 }
 
+#ifdef USE_G2O
 inline std::string printSim3(g2o::Sim3 gSel) {
   // quaternion to euler
   Eigen::Vector3d euler =
@@ -148,6 +152,7 @@ inline std::string printSim3(g2o::Sim3 gSel) {
 
   return formatted_string;
 }
+#endif
 
 template <class VALUE>
 inline std::string printValueG2o(const Key& key, const VALUE& value) = delete;
