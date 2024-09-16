@@ -249,6 +249,31 @@ inline void flashData() {
   FlashDataCounter = 0;
 }
 
+template <typename Mutex>
+class callback_sink : public spdlog::sinks::base_sink<Mutex> {
+ public:
+  using log_func_t = std::function<void(const spdlog::details::log_msg&)>;
+
+  explicit callback_sink(log_func_t log_func)
+      : log_func_(std::move(log_func)) {}
+
+ protected:
+  void sink_it_(const spdlog::details::log_msg& msg) override {
+    log_func_(msg);
+  }
+
+  void flush_() override {
+    // No-op for this sink
+  }
+
+ private:
+  log_func_t log_func_;
+};
+
+using callback_sink_mt = callback_sink<std::mutex>;  // Thread-safe sink
+using callback_sink_st =
+    callback_sink<spdlog::details::null_mutex>;  // Non-thread-safe sink
+
 }  // namespace aria::logging
 
 #endif  // ARIA_COMMON_LOGGING_H_

@@ -91,11 +91,16 @@ std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
                                                  int flash_data_every_n) {
   // Get a timestamp
   auto now = std::chrono::system_clock::now();
-  auto timestamp = std::chrono::system_clock::to_time_t(now);
+  // get timestamp in YY-MM-DD-HH-MM-SS format
+  auto timestamp =
+      std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
+          .count();
+  std::stringstream time_ss;
+  time_ss << std::put_time(std::localtime(&timestamp), "%Y-%m-%d-%H-%M-%S");
 
   // Create a directory path with the timestamp
   std::filesystem::path log_dir = std::filesystem::path(output_dir);
-  if (use_timestamp) log_dir /= std::to_string(timestamp);
+  if (use_timestamp) log_dir /= time_ss.str();
 
   // Create the directory and any necessary parent directories
   std::filesystem::create_directories(log_dir / "logs");
