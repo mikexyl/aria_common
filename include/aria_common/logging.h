@@ -241,6 +241,8 @@ std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
                                                  bool use_timestamp = true,
                                                  int flash_data_every_n = 10);
 
+void installFailureSignalHandler();
+
 inline void redirectCoutToLogger() {
   std::ostream cout(&SpdlogBuf::instance());
   std::cout.rdbuf(cout.rdbuf());

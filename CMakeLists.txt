@@ -9,7 +9,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # find gtsam
 find_package(GTSAM REQUIRED)
-find_package(GTSAM_UNSTABLE REQUIRED)
 
 # find spdlog
 find_package(spdlog REQUIRED)
@@ -34,15 +33,13 @@ find_package(yaml-cpp REQUIRED)
 set(INCLUDES
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
-        ${GTSAM_INCLUDE_DIR}
-        ${GTSAM_UNSTABLE_INCLUDE_DIR}
         ${spdlog_INCLUDE_DIRS}
         ${OpenCV_INCLUDE_DIRS}
         ${G2O_INCLUDE_DIR}
 )
 
 set(LIBS
-        ${GTSAM_LIBRARY} ${GTSAM_UNSTABLE_LIBRARY}
+        gtsam
         spdlog::spdlog
         ${OpenCV_LIBS}
         Eigen3::Eigen

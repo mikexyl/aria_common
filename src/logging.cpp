@@ -81,8 +81,6 @@ void initializeLogger(std::filesystem::path log_dir, std::string name) {
   spdlog::flush_every(std::chrono::seconds(3));  // Auto-flush every 3 seconds
   spdlog::set_pattern(
       "[%Y-%m-%d %H:%M:%S.%e] [%^%L%$] %v");  // Custom log pattern
-
-  installFailureSignalHandler();
 }
 
 std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
@@ -91,10 +89,8 @@ std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,
                                                  int flash_data_every_n) {
   // Get a timestamp
   auto now = std::chrono::system_clock::now();
-  // get timestamp in YY-MM-DD-HH-MM-SS format
-  auto timestamp =
-      std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch())
-          .count();
+  // Convert to time_t
+  std::time_t timestamp = std::chrono::system_clock::to_time_t(now);
   std::stringstream time_ss;
   time_ss << std::put_time(std::localtime(&timestamp), "%Y-%m-%d-%H-%M-%S");
 
