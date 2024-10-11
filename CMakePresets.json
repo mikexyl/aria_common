@@ -13,7 +13,8 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "YES",
-        "G2O_ROOT": "${sourceDir}/../g2o/install"
+        "G2O_ROOT": "${sourceDir}/../g2o/install",
+        "GTSAM_DIR": "/Users/mikexyl/Workspaces/deps/lib/cmake/GTSAM"
       }
     },
     {

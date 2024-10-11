@@ -13,6 +13,7 @@ namespace aria {
 // Structure to store dynamic benchmark statistics
 struct DynamicBenchmarkStats {
   std::string label;
+  std::optional<int> index;
   double mean = 0.0;
   double m2 = 0.0;  // For variance calculation
   double max = 0.0;
@@ -30,10 +31,15 @@ std::string printBenchmarkStats();
 
 inline void clearBenchmarkStats() { benchmarkStatsMap.clear(); }
 
-inline void updateBenchmarkStats(const std::string& label, double duration) {
+inline void updateBenchmarkStats(const std::string& label,
+                                 std::optional<int> index,
+                                 double duration) {
   tbb::concurrent_hash_map<std::string, DynamicBenchmarkStats>::accessor a;
-  if (benchmarkStatsMap.insert(a, label)) {
+  auto label_with_index = label;
+  label_with_index += index.has_value() ? std::to_string(index.value()) : "_";
+  if (benchmarkStatsMap.insert(a, label_with_index)) {
     a->second.label = label;
+    a->second.index = index;
   }
 
   // Lock the mutex for thread-safe modification
@@ -54,7 +60,7 @@ inline void updateBenchmarkStats(const std::string& label, double duration) {
   }
 }
 
-#define BENCHMARK(codeBlock, label)                         \
+#define BENCHMARK(codeBlock, label, index)                  \
   do {                                                      \
     std::string label_str(label);                           \
     boost::timer::cpu_timer timer;                          \
@@ -68,7 +74,7 @@ inline void updateBenchmarkStats(const std::string& label, double duration) {
     timer.stop();                                           \
     auto duration_ns = timer.elapsed().wall;                \
     auto duration_ms = duration_ns / 1e6;                   \
-    aria::updateBenchmarkStats(label, duration_ms);         \
+    aria::updateBenchmarkStats(label, index, duration_ms);  \
   } while (0)
 
 }  // namespace aria
