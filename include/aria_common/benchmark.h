@@ -5,6 +5,7 @@
 
 #include <boost/timer/timer.hpp>
 #include <map>
+#include <optional>
 #include <string>
 
 #include "aria_common/logging.h"
