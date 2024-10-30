@@ -50,4 +50,20 @@ std::string printBenchmarkStats() {
 
   return ss.str();
 }
+
+void logTimingToData() {
+  // traverse the map and log the data
+  for (auto it = benchmarkStatsMap.cbegin(); it != benchmarkStatsMap.cend();
+       ++it) {
+    // log the data
+    double total_time = it->second.mean * it->second.count;
+    std::string label =
+        it->second.label +
+        std::string(it->second.index.has_value()
+                        ? std::to_string(it->second.index.value())
+                        : "_");
+    LOG_DATA("timing/" + label, total_time);
+  }
+}
+
 }  // namespace aria

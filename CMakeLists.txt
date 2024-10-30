@@ -16,6 +16,7 @@ find_package(spdlog REQUIRED)
 # find opencv
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(TBB REQUIRED)
 find_package(G2O QUIET)
 if (G2O_FOUND)
         # set a marcros to disable g2o
@@ -46,6 +47,7 @@ set(LIBS
         ${G2O_CORE_LIBRARY}
         ${G2O_STUFF_LIBRARY}
         ${G2O_TYPES_SIM3}
+        TBB::tbb TBB::tbbmalloc
         yaml-cpp
 )
 

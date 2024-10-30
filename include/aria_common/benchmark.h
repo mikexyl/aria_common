@@ -30,6 +30,8 @@ extern tbb::concurrent_hash_map<std::string, DynamicBenchmarkStats>
 // Function to calculate and print benchmark statistics
 std::string printBenchmarkStats();
 
+void logTimingToData();
+
 inline void clearBenchmarkStats() { benchmarkStatsMap.clear(); }
 
 inline void updateBenchmarkStats(const std::string& label,

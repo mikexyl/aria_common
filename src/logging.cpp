@@ -80,7 +80,9 @@ void initializeLogger(std::filesystem::path log_dir, std::string name) {
 
   spdlog::flush_every(std::chrono::seconds(3));  // Auto-flush every 3 seconds
   spdlog::set_pattern(
-      "[%Y-%m-%d %H:%M:%S.%e] [%^%L%$] %v");  // Custom log pattern
+      "[%^%L%$] %v");  // Custom log pattern
+
+  spdlog::enable_backtrace(32);
 }
 
 std::filesystem::path initializeOutputsDirectory(const std::string& output_dir,

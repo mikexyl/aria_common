@@ -19,12 +19,13 @@
 
 #define HL(msg) (std::string("<: ") + (msg) + std::string(" /:>").c_str())
 
-#define LOG_FATAL(msg)                                      \
+#define LOG_FATAL(msg, ...)                                 \
   spdlog::critical("Fatal error: {} at {}:{}, function {}", \
-                   msg,                                     \
+                   fmt::format(msg, ##__VA_ARGS__),         \
                    __FILE__,                                \
                    __LINE__,                                \
                    __PRETTY_FUNCTION__);                    \
+  spdlog::dump_backtrace();                                 \
   std::abort();
 
 // cancel glog's CHECK macro
@@ -32,28 +33,26 @@
 #undef CHECK
 #endif
 
-#define CHECK_LT(a, b) CHECK((a) < (b))
+#define CHECK_LT(a, b, ...) CHECK((a) < (b), ##__VA_ARGS__)
 
-#define CHECK_NE(a, b) CHECK((a) != (b))
+#define CHECK_NE(a, b, ...) CHECK((a) != (b), ##__VA_ARGS__)
 
-#define CHECK_EQ(a, b) CHECK((a) == (b))
+#define CHECK_EQ(a, b, ...) CHECK((a) == (b), ##__VA_ARGS__)
 
-#define CHECK_GE(a, b) CHECK((a) >= (b))
+#define CHECK_GE(a, b, ...) CHECK((a) >= (b), ##__VA_ARGS__)
 
-#define CHECK_GT(a, b) CHECK((a) > (b))
+#define CHECK_GT(a, b, ...) CHECK((a) > (b)), ##__VA_ARGS__)
 
-#define CHECK_MSG(expr, msg)                                       \
-  if (!(expr)) {                                                   \
-    spdlog::critical("Check failed: {} at {}:{}, function {}, {}", \
-                     #expr,                                        \
-                     __FILE__,                                     \
-                     __LINE__,                                     \
-                     __PRETTY_FUNCTION__,                          \
-                     msg);                                         \
-    std::abort();                                                  \
+#define CHECK(expr, ...)                                                   \
+  if (!(expr)) {                                                           \
+    spdlog::critical(                                                      \
+        "Check failed: {} at {}:{}, function {}" __VA_OPT__(", {}"),       \
+        #expr,                                                             \
+        __FILE__,                                                          \
+        __LINE__,                                                          \
+        __PRETTY_FUNCTION__ __VA_OPT__(, fmt::format("{}", __VA_ARGS__))); \
+    std::abort();                                                          \
   }
-
-#define CHECK(expr) CHECK_MSG(expr, "")
 
 using namespace gtsam;
 
@@ -76,18 +75,37 @@ inline void LOG_DATA(std::string key, T msg) {
 
 template <>
 inline void LOG_DATA(std::string key, std::string msg) {
+  // if key has '/' in it, the first part is group, the second part is key
+  auto pos = key.find('/');
+  std::string group;
+  std::string key_;
+  if (pos != std::string::npos) {
+    group = key.substr(0, pos);
+    key_ = key.substr(pos + 1);
+  } else {
+    group = "default";
+    key_ = key;
+  }
+
   spdlog::info(HL(key) + " " + msg);
 
+  // Check if the group already exists in dataRoot
+  if (!aria::logging::dataRoot[group] ||
+      !aria::logging::dataRoot[group].IsMap()) {
+    // If the group doesn't exist or is not a map, initialize it as a map
+    aria::logging::dataRoot[group] = YAML::Node(YAML::NodeType::Map);
+  }
+
   // Check if the key already exists in dataRoot
-  if (!aria::logging::dataRoot[key] ||
-      !aria::logging::dataRoot[key].IsSequence()) {
+  if (!aria::logging::dataRoot[group][key_] ||
+      !aria::logging::dataRoot[group][key_].IsSequence()) {
     // If the key doesn't exist or is not a sequence, initialize it as a
     // sequence
-    aria::logging::dataRoot[key] = YAML::Node(YAML::NodeType::Sequence);
+    aria::logging::dataRoot[group][key_] = YAML::Node(YAML::NodeType::Sequence);
   }
 
   // Append the message to the sequence
-  aria::logging::dataRoot[key].push_back(msg);
+  aria::logging::dataRoot[group][key_].push_back(msg);
 
   // Increment the counter
   aria::logging::FlashDataCounter++;
