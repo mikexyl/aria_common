@@ -5,8 +5,8 @@ get_filename_component(@PROJECT_NAME@_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PAT
 list(APPEND CMAKE_MODULE_PATH "${@PROJECT_NAME@_CMAKE_DIR}")
 
 find_package(spdlog REQUIRED)
-set(G2O_ROOT "@G2O_ROOT@")
-find_package(G2O REQUIRED)
+set(g2o_ROOT "@g2o_ROOT@")
+find_package(g2o REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(TBB REQUIRED)
 

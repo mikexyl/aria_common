@@ -17,9 +17,9 @@ find_package(spdlog REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(TBB REQUIRED)
-find_package(G2O QUIET)
-if (G2O_FOUND)
-        # set a marcros to disable g2o
+find_package(g2o QUIET)
+if (g2o_FOUND)
+        # set a marcros to enable g2o
         add_definitions(-DUSE_G2O)
 else()
         message(WARNING "G2O not found, disabling g2o")
@@ -36,7 +36,6 @@ set(INCLUDES
         $<INSTALL_INTERFACE:include>
         ${spdlog_INCLUDE_DIRS}
         ${OpenCV_INCLUDE_DIRS}
-        ${G2O_INCLUDE_DIR}
 )
 
 set(LIBS
@@ -44,9 +43,12 @@ set(LIBS
         spdlog::spdlog
         ${OpenCV_LIBS}
         Eigen3::Eigen
-        ${G2O_CORE_LIBRARY}
-        ${G2O_STUFF_LIBRARY}
-        ${G2O_TYPES_SIM3}
+        g2o::core
+        g2o::stuff
+        g2o::opengl_helper
+        g2o::types_sim3
+        g2o::types_sba
+        g2o::types_slam3d
         TBB::tbb TBB::tbbmalloc
         yaml-cpp
 )
@@ -105,9 +107,6 @@ install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_ros
         ARCHIVE DESTINATION lib
         RUNTIME DESTINATION bin
         INCLUDES DESTINATION include)
-
-FILE(COPY ${CMAKE_SOURCE_DIR}/cmake/FindG2O.cmake
-        DESTINATION ${CMAKE_BINARY_DIR})
 
 install(EXPORT ${PROJECT_NAME}Targets
   FILE ${PROJECT_NAME}Targets.cmake

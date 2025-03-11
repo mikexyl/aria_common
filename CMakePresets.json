@@ -13,8 +13,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "YES",
-        "G2O_ROOT": "${sourceDir}/../g2o/install",
-        "GTSAM_DIR": "${sourceDir}/../gtsam/build/isam2_fast_marginal"
+        "GTSAM_DIR": "${sourceDir}/../gtsam/build/original"
       }
     },
     {

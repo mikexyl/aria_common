@@ -13,6 +13,21 @@
 #include <opencv2/core.hpp>
 #include <string>
 
+// fmt formatter to print vectors
+template <typename T>
+struct fmt::formatter<std::vector<T>> {
+  constexpr auto parse(format_parse_context& ctx)
+      -> format_parse_context::iterator {
+    return ctx.begin();  // No custom format specifiers needed
+  }
+
+  template <typename FormatContext>
+  auto format(const std::vector<T>& vec, FormatContext& ctx)
+      -> FormatContext::iterator {
+    return fmt::format_to(ctx.out(), "{:.3}", fmt::join(vec, " "));
+  }
+};
+
 #ifdef USE_G2O
 #include <g2o/types/sim3/sim3.h>
 #endif
@@ -87,7 +102,7 @@ inline void LOG_DATA(std::string key, std::string msg) {
     key_ = key;
   }
 
-  spdlog::info(HL(key) + " " + msg);
+  spdlog::debug(HL(key) + " " + msg);
 
   // Check if the group already exists in dataRoot
   if (!aria::logging::dataRoot[group] ||
