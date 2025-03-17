@@ -3,6 +3,7 @@
 
 #include <fmt/format.h>
 #include <gtsam/geometry/Pose3.h>
+#include <gtsam/linear/GaussianBayesTree.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
@@ -12,6 +13,33 @@
 #include <fstream>
 #include <opencv2/core.hpp>
 #include <string>
+
+template <>
+struct fmt::formatter<gtsam::GaussianBayesTree::Clique> {
+  constexpr auto parse(fmt::format_parse_context& ctx)
+      -> fmt::format_parse_context::iterator {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const gtsam::GaussianBayesTree::Clique& clique,
+              FormatContext& ctx) -> FormatContext::iterator {
+    std::ostringstream oss;
+    for (auto key_it = clique.conditional_->beginFrontals();
+         key_it != clique.conditional_->endFrontals();
+         key_it++) {
+      oss << gtsam::DefaultKeyFormatter(*key_it) << " ";
+    }
+    oss << "|";
+    for (auto key_it = clique.conditional_->beginParents();
+         key_it != clique.conditional_->endParents();
+         key_it++) {
+      oss << " " << gtsam::DefaultKeyFormatter(*key_it);
+    }
+
+    return fmt::format_to(ctx.out(), "{}", oss.str());
+  }
+};
 
 // fmt formatter to print vectors
 template <typename T>
