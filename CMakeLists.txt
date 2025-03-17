@@ -23,10 +23,6 @@ if (g2o_FOUND)
         add_definitions(-DUSE_G2O)
 else()
         message(WARNING "G2O not found, disabling g2o")
-        set(G2O_INCLUDE_DIR "")
-        set(G2O_CORE_LIBRARY "")
-        set(G2O_STUFF_LIBRARY "")
-        set(G2O_TYPES_SIM3 "")
 endif()
 
 find_package(yaml-cpp REQUIRED)
@@ -38,6 +34,7 @@ set(INCLUDES
         ${OpenCV_INCLUDE_DIRS}
 )
 
+if(g2o_FOUND)
 set(LIBS
         gtsam
         spdlog::spdlog
@@ -52,6 +49,16 @@ set(LIBS
         TBB::tbb TBB::tbbmalloc
         yaml-cpp
 )
+else()
+set(LIBS
+        gtsam
+        spdlog::spdlog
+        ${OpenCV_LIBS}
+        Eigen3::Eigen
+        TBB::tbb TBB::tbbmalloc
+        yaml-cpp
+)
+endif()
 
 add_library(${PROJECT_NAME} SHARED
         src/logging.cpp
