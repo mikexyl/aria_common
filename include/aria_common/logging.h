@@ -14,6 +14,38 @@
 #include <opencv2/core.hpp>
 #include <string>
 
+// formatter for GaussianConditional
+template <>
+struct fmt::formatter<gtsam::GaussianConditional> {
+  constexpr auto parse(fmt::format_parse_context& ctx)
+      -> fmt::format_parse_context::iterator {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const gtsam::GaussianConditional& conditional,
+              FormatContext& ctx) -> FormatContext::iterator {
+    std::ostringstream oss;
+    oss << "P(";
+    for (auto key_it = conditional.beginFrontals();
+         key_it != conditional.endFrontals();
+         key_it++) {
+      oss << gtsam::DefaultKeyFormatter(*key_it) << " ";
+    }
+    if (conditional.nrParents() > 0) {
+      oss << "|";
+    }
+    for (auto key_it = conditional.beginParents();
+         key_it != conditional.endParents();
+         key_it++) {
+      oss << " " << gtsam::DefaultKeyFormatter(*key_it);
+    }
+    oss << ")";
+    return fmt::format_to(ctx.out(), "{}", oss.str());
+  }
+};
+
+
 template <>
 struct fmt::formatter<gtsam::GaussianBayesTree::Clique> {
   constexpr auto parse(fmt::format_parse_context& ctx)
@@ -53,6 +85,23 @@ struct fmt::formatter<std::vector<T>> {
   auto format(const std::vector<T>& vec, FormatContext& ctx)
       -> FormatContext::iterator {
     return fmt::format_to(ctx.out(), "{:.3}", fmt::join(vec, " "));
+  }
+};
+
+// fmt formatter to print eigen matrix
+template <typename T, int R, int C>
+struct fmt::formatter<Eigen::Matrix<T, R, C>> {
+  constexpr auto parse(format_parse_context& ctx)
+      -> format_parse_context::iterator {
+    return ctx.begin();  // No custom format specifiers needed
+  }
+
+  template <typename FormatContext>
+  auto format(const Eigen::Matrix<T, R, C>& mat, FormatContext& ctx)
+      -> FormatContext::iterator {
+    std::ostringstream oss;
+    oss << mat;
+    return fmt::format_to(ctx.out(), "{}", oss.str());
   }
 };
 

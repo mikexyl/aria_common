@@ -63,10 +63,34 @@ inline void updateBenchmarkStats(const std::string& label,
   }
 }
 
+class Timer {
+ public:
+  Timer(const std::string& label, int index = -1)
+      : label_(label), index_(index) {
+    timer_.start();
+  }
+  ~Timer() {
+    if (timer_.is_stopped()) {
+      return;
+    }
+    stop();
+  }
+  void stop() {
+    timer_.stop();
+    aria::updateBenchmarkStats(label_, index_, elapsed());
+  }
+  double elapsed() const { return timer_.elapsed().wall / 1e6; }
+
+ public:
+  std::string label_;
+  int index_;
+  boost::timer::cpu_timer timer_;
+};
+
 #define BENCHMARK(codeBlock, label, index)                  \
   do {                                                      \
     std::string label_str(label);                           \
-    boost::timer::cpu_timer timer;                          \
+    Timer timer(label_str, index);                          \
     try {                                                   \
       codeBlock;                                            \
     } catch (const std::exception& e) {                     \
@@ -74,10 +98,6 @@ inline void updateBenchmarkStats(const std::string& label,
                     " failed with exception: " + e.what()); \
       throw;                                                \
     }                                                       \
-    timer.stop();                                           \
-    auto duration_ns = timer.elapsed().wall;                \
-    auto duration_ms = duration_ns / 1e6;                   \
-    aria::updateBenchmarkStats(label, index, duration_ms);  \
   } while (0)
 
 }  // namespace aria

@@ -13,7 +13,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "YES",
-        "GTSAM_DIR": "${sourceDir}/../gtsam/build/original"
+        "GTSAM_DIR": "${sourceDir}/../gtsam/build/isam2_fast_marginal"
       }
     },
     {

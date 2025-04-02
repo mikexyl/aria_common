@@ -32,6 +32,7 @@ set(INCLUDES
         $<INSTALL_INTERFACE:include>
         ${spdlog_INCLUDE_DIRS}
         ${OpenCV_INCLUDE_DIRS}
+        ${TBB_INCLUDE_DIRS}
 )
 
 if(g2o_FOUND)
@@ -46,7 +47,7 @@ set(LIBS
         g2o::types_sim3
         g2o::types_sba
         g2o::types_slam3d
-        TBB::tbb TBB::tbbmalloc
+        ${TBB_LIBRARIES}
         yaml-cpp
 )
 else()
