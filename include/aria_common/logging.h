@@ -23,8 +23,8 @@ struct fmt::formatter<gtsam::GaussianConditional> {
   }
 
   template <typename FormatContext>
-  auto format(const gtsam::GaussianConditional& conditional,
-              FormatContext& ctx) -> FormatContext::iterator {
+  auto format(const gtsam::GaussianConditional& conditional, FormatContext& ctx)
+      -> FormatContext::iterator {
     std::ostringstream oss;
     oss << "P(";
     for (auto key_it = conditional.beginFrontals();
@@ -44,7 +44,6 @@ struct fmt::formatter<gtsam::GaussianConditional> {
     return fmt::format_to(ctx.out(), "{}", oss.str());
   }
 };
-
 
 template <>
 struct fmt::formatter<gtsam::GaussianBayesTree::Clique> {
@@ -101,6 +100,26 @@ struct fmt::formatter<Eigen::Matrix<T, R, C>> {
       -> FormatContext::iterator {
     std::ostringstream oss;
     oss << mat;
+    return fmt::format_to(ctx.out(), "{}", oss.str());
+  }
+};
+
+// fmt formatter to print keys of a gtsam factor
+template <>
+struct fmt::formatter<gtsam::NonlinearFactor> {
+  constexpr auto parse(fmt::format_parse_context& ctx)
+      -> fmt::format_parse_context::iterator {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const gtsam::Factor& factor, FormatContext& ctx)
+      -> FormatContext::iterator {
+    std::ostringstream oss;
+    oss << "Factor: ";
+    for (auto key_it = factor.begin(); key_it != factor.end(); key_it++) {
+      oss << gtsam::DefaultKeyFormatter(*key_it) << " ";
+    }
     return fmt::format_to(ctx.out(), "{}", oss.str());
   }
 };

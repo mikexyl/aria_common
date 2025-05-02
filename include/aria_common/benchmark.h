@@ -87,17 +87,19 @@ class Timer {
   boost::timer::cpu_timer timer_;
 };
 
-#define BENCHMARK(codeBlock, label, index)                  \
-  do {                                                      \
-    std::string label_str(label);                           \
-    Timer timer(label_str, index);                          \
-    try {                                                   \
-      codeBlock;                                            \
-    } catch (const std::exception& e) {                     \
-      spdlog::error("Benchmarking: " + label_str +          \
-                    " failed with exception: " + e.what()); \
-      throw;                                                \
-    }                                                       \
+#define BENCHMARK(codeBlock, label, index)                           \
+  do {                                                               \
+    std::string label_str(label);                                    \
+    Timer timer(label_str, index);                                   \
+    try {                                                            \
+      codeBlock;                                                     \
+    } catch (const std::exception& e) {                              \
+      spdlog::error("Benchmarking: {}_{} failed with exception: {}", \
+                    label,                                           \
+                    index,                                           \
+                    e.what());                                       \
+      throw;                                                         \
+    }                                                                \
   } while (0)
 
 }  // namespace aria
