@@ -124,6 +124,36 @@ struct fmt::formatter<gtsam::NonlinearFactor> {
   }
 };
 
+// fmt formatter to print a templated container of gtsam::Key
+// Formatter for a container of gtsam::Key
+template <typename Container>
+struct fmt::formatter<
+    Container,
+    char,
+    std::enable_if_t<
+        std::is_same_v<typename Container::value_type, gtsam::Key>>> {
+  // Parses format specifications (none used here)
+  constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
+    return ctx.begin();
+  }
+
+  // Formats the container
+  template <typename FormatContext>
+  auto format(const Container& container, FormatContext& ctx)
+      -> decltype(ctx.out()) {
+    auto out = ctx.out();
+    out = fmt::format_to(out, "[");
+    bool first = true;
+    for (const auto& key : container) {
+      if (!first) out = fmt::format_to(out, ", ");
+      first = false;
+      out = fmt::format_to(out, "{}", gtsam::DefaultKeyFormatter(key));
+    }
+    out = fmt::format_to(out, "]");
+    return out;
+  }
+};
+
 #ifdef USE_G2O
 #include <g2o/types/sim3/sim3.h>
 #endif
