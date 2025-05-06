@@ -27,10 +27,10 @@ void handleFailureSignal(int signal) {
 }
 
 void installFailureSignalHandler() {
-  std::signal(SIGSEGV, handleFailureSignal);
-  std::signal(SIGABRT, handleFailureSignal);
-  std::signal(SIGFPE, handleFailureSignal);
-  std::signal(SIGILL, handleFailureSignal);
+  std::signal(SIGSEGV, crash_handler);
+  std::signal(SIGABRT, crash_handler);
+  std::signal(SIGFPE, crash_handler);
+  std::signal(SIGILL, crash_handler);
 }
 
 void initializeLogger(std::filesystem::path log_dir, std::string name) {
@@ -79,8 +79,7 @@ void initializeLogger(std::filesystem::path log_dir, std::string name) {
   spdlog::register_logger(fatal_logger);
 
   spdlog::flush_every(std::chrono::seconds(3));  // Auto-flush every 3 seconds
-  spdlog::set_pattern(
-      "[%^%L%$] %v");  // Custom log pattern
+  spdlog::set_pattern("[%^%L%$] %v");            // Custom log pattern
 
   spdlog::enable_backtrace(32);
 }

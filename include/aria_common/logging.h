@@ -1,19 +1,25 @@
 #ifndef ARIA_COMMON_LOGGING_H_
 #define ARIA_COMMON_LOGGING_H_
 
+#include <cxxabi.h>
+#include <dlfcn.h>
+#include <execinfo.h>
 #include <fmt/format.h>
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/linear/GaussianBayesTree.h>
 #include <gtsam/slam/BetweenFactor.h>
+#include <signal.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/spdlog.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <yaml-cpp/yaml.h>
 
 #include <filesystem>
 #include <fstream>
 #include <opencv2/core.hpp>
 #include <string>
-
 // formatter for GaussianConditional
 template <>
 struct fmt::formatter<gtsam::GaussianConditional> {
@@ -439,6 +445,50 @@ class callback_sink : public spdlog::sinks::base_sink<Mutex> {
 using callback_sink_mt = callback_sink<std::mutex>;  // Thread-safe sink
 using callback_sink_st =
     callback_sink<spdlog::details::null_mutex>;  // Non-thread-safe sink
+
+// Maximum number of stack frames to capture
+static const int MAX_FRAMES = 64;
+
+// call this once at startup
+static inline std::string getExePath() {
+  char buf[PATH_MAX];
+  ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+  if (len <= 0) throw std::runtime_error("readlink failed");
+  buf[len] = '\0';
+  return std::string(buf);
+}
+
+static void crash_handler(int sig) {
+  void* frames[MAX_FRAMES];
+  int n = backtrace(frames, MAX_FRAMES);
+
+  fprintf(stderr, "Caught signal %d, stack trace:\n", sig);
+  for (int i = 0; i < n; i++) {
+    Dl_info info;
+    if (dladdr(frames[i], &info) && info.dli_sname) {
+      int status = 0;
+      char* demangled =
+          abi::__cxa_demangle(info.dli_sname, nullptr, nullptr, &status);
+      const char* name =
+          (status == 0 && demangled) ? demangled : info.dli_sname;
+      ptrdiff_t offset = (char*)frames[i] - (char*)info.dli_saddr;
+      fprintf(stderr, "#%02d %p %s + %td\n", i, frames[i], name, offset);
+      free(demangled);
+    } else {
+      fprintf(stderr, "#%02d %p\n", i, frames[i]);
+    }
+    // *** Optional:*** invoke addr2line to get file:line
+    char cmd[512];
+    snprintf(cmd,
+             sizeof(cmd),
+             "addr2line -f -C -e %s %p",
+             getExePath().c_str(),
+             frames[i]);
+    system(cmd);
+  }
+
+  _exit(1);
+}
 
 }  // namespace aria::logging
 
