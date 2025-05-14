@@ -13,7 +13,7 @@ std::string printBenchmarkStats() {
   ss << std::left << std::setw(20) << "Label" << std::setw(5) << "Index"
      << std::setw(15) << "Mean (ms)" << std::setw(15) << "Std Dev (ms)"
      << std::setw(15) << "Max (ms)" << std::setw(15) << "Min (ms)"
-     << std::setw(10) << "Runs" << std::endl;
+     << std::setw(10) << "Runs" << std::setw(10) << "Total (ms)" << std::endl;
   ss << std::string(60, '-') << std::endl;
 
   tbb::concurrent_hash_map<std::string, DynamicBenchmarkStats>::const_accessor
@@ -38,12 +38,15 @@ std::string printBenchmarkStats() {
       std::string index =
           stats.index.has_value() ? std::to_string(stats.index.value()) : "-";
 
+      double total = stats.mean * stats.count;
+
       ss << std::left << std::setw(20) << stats.label << std::setw(5)
          << std::fixed << index << std::setw(15) << std::fixed
          << std::setprecision(2) << stats.mean << std::setw(15) << std::fixed
          << std::setprecision(2) << stddev << std::setw(15) << std::fixed
          << std::setprecision(2) << stats.max << std::setw(15) << std::fixed
          << std::setprecision(2) << stats.min << std::setw(10) << stats.count
+         << std::setw(10) << std::fixed << std::setprecision(2) << total
          << std::endl;
     }
   }

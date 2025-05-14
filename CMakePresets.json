@@ -2,7 +2,7 @@
   "version": 3,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 23,
+    "minor": 22,
     "patch": 0
   },
   "configurePresets": [
@@ -13,7 +13,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "YES",
-        "GTSAM_DIR": "${sourceDir}/../gtsam/build/isam2_fast_marginal"
+        "GTSAM_DIR": "${sourceDir}/../gtsam/build/original"
       }
     },
     {

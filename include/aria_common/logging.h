@@ -60,7 +60,7 @@ struct fmt::formatter<gtsam::GaussianBayesTree::Clique> {
 
   template <typename FormatContext>
   auto format(const gtsam::GaussianBayesTree::Clique& clique,
-              FormatContext& ctx) -> FormatContext::iterator {
+              FormatContext& ctx) const -> FormatContext::iterator {
     std::ostringstream oss;
     for (auto key_it = clique.conditional_->beginFrontals();
          key_it != clique.conditional_->endFrontals();
@@ -78,6 +78,16 @@ struct fmt::formatter<gtsam::GaussianBayesTree::Clique> {
   }
 };
 
+template <typename T>
+inline std::string join_vec(const std::vector<T>& vec) {
+    std::ostringstream oss;
+    for (size_t i = 0; i < vec.size(); ++i) {
+        if (i) oss << " ";
+        oss << fmt::format("{:.3}", vec[i]);
+    }
+    return oss.str();
+}
+
 // fmt formatter to print vectors
 template <typename T>
 struct fmt::formatter<std::vector<T>> {
@@ -89,7 +99,7 @@ struct fmt::formatter<std::vector<T>> {
   template <typename FormatContext>
   auto format(const std::vector<T>& vec, FormatContext& ctx)
       -> FormatContext::iterator {
-    return fmt::format_to(ctx.out(), "{:.3}", fmt::join(vec, " "));
+    return fmt::format_to(ctx.out(), "{:.3}",join_vec(vec));
   }
 };
 

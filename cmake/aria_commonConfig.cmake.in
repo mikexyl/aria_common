@@ -6,7 +6,7 @@ list(APPEND CMAKE_MODULE_PATH "${@PROJECT_NAME@_CMAKE_DIR}")
 
 find_package(spdlog REQUIRED)
 set(g2o_ROOT "@g2o_ROOT@")
-find_package(g2o REQUIRED)
+find_package(g2o QUIET)
 find_package(OpenCV REQUIRED)
 find_package(TBB REQUIRED COMPONENTS tbb tbbmalloc)
 
