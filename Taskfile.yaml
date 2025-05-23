@@ -6,8 +6,5 @@ vars:
 tasks:
   build:
     cmds:
-      - cmake --preset config-{{.type}}
+      - source /opt/ros/${ROS_DISTRO}/setup.sh && cmake --preset config-{{.type}}
       - cmake --build --preset build-{{.type}}
-  
-
-
