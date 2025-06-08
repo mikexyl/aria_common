@@ -56,7 +56,7 @@ std::string printBenchmarkStats() {
 
 void logTimingToData() {
   // traverse the map and log the data
-  for (auto it = benchmarkStatsMap.cbegin(); it != benchmarkStatsMap.cend();
+  for (auto it = benchmarkStatsMap.begin(); it != benchmarkStatsMap.end();
        ++it) {
     // log the data
     double total_time = it->second.mean * it->second.count;

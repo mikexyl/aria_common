@@ -4,7 +4,7 @@
 #include <cxxabi.h>
 #include <dlfcn.h>
 #include <execinfo.h>
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/linear/GaussianBayesTree.h>
 #include <gtsam/slam/BetweenFactor.h>

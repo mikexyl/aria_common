@@ -9,7 +9,6 @@
 
   <buildtool_depend>cmake</buildtool_depend>
 
-  <depend>libspdlog-dev</depend>
   <depend>gtsam</depend>
 
   <export>

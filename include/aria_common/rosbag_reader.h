@@ -1,8 +1,6 @@
 #ifndef ARIA_DOPT_ROS_ROSBAG_READER_H_
 #define ARIA_DOPT_ROS_ROSBAG_READER_H_
 
-#include <spdlog/spdlog.h>
-
 #include <functional>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/serialization.hpp>
