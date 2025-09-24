@@ -29,7 +29,6 @@ find_package(yaml-cpp REQUIRED)
 
 set(INCLUDES
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
         ${spdlog_INCLUDE_DIRS}
         ${OpenCV_INCLUDE_DIRS}
         ${TBB_INCLUDE_DIRS}
@@ -115,6 +114,9 @@ install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_ros
         ARCHIVE DESTINATION lib
         RUNTIME DESTINATION bin
         INCLUDES DESTINATION include)
+
+install(DIRECTORY include/aria_common
+        DESTINATION include)
 
 install(EXPORT ${PROJECT_NAME}Targets
   FILE ${PROJECT_NAME}Targets.cmake

@@ -4,7 +4,7 @@
 #include <cxxabi.h>
 #include <dlfcn.h>
 #include <execinfo.h>
-#include <fmt/format.h>
+#include <spdlog/fmt/fmt.h>
 #include <gtsam/geometry/Pose3.h>
 #include <gtsam/linear/GaussianBayesTree.h>
 #include <gtsam/slam/BetweenFactor.h>
@@ -30,7 +30,7 @@ struct fmt::formatter<gtsam::GaussianConditional> {
 
   template <typename FormatContext>
   auto format(const gtsam::GaussianConditional& conditional, FormatContext& ctx)
-      -> FormatContext::iterator {
+      -> typename FormatContext::iterator {
     std::ostringstream oss;
     oss << "P(";
     for (auto key_it = conditional.beginFrontals();
@@ -60,7 +60,7 @@ struct fmt::formatter<gtsam::GaussianBayesTree::Clique> {
 
   template <typename FormatContext>
   auto format(const gtsam::GaussianBayesTree::Clique& clique,
-              FormatContext& ctx) const -> FormatContext::iterator {
+              FormatContext& ctx) const -> typename FormatContext::iterator {
     std::ostringstream oss;
     for (auto key_it = clique.conditional_->beginFrontals();
          key_it != clique.conditional_->endFrontals();
@@ -80,12 +80,12 @@ struct fmt::formatter<gtsam::GaussianBayesTree::Clique> {
 
 template <typename T>
 inline std::string join_vec(const std::vector<T>& vec) {
-    std::ostringstream oss;
-    for (size_t i = 0; i < vec.size(); ++i) {
-        if (i) oss << " ";
-        oss << fmt::format("{:.3}", vec[i]);
-    }
-    return oss.str();
+  std::ostringstream oss;
+  for (size_t i = 0; i < vec.size(); ++i) {
+    if (i) oss << " ";
+    oss << fmt::format("{:.3}", vec[i]);
+  }
+  return oss.str();
 }
 
 // fmt formatter to print vectors
@@ -98,8 +98,8 @@ struct fmt::formatter<std::vector<T>> {
 
   template <typename FormatContext>
   auto format(const std::vector<T>& vec, FormatContext& ctx)
-      -> FormatContext::iterator {
-    return fmt::format_to(ctx.out(), "{:.3}",join_vec(vec));
+      -> typename FormatContext::iterator {
+    return fmt::format_to(ctx.out(), "{:.3}", join_vec(vec));
   }
 };
 
@@ -113,7 +113,7 @@ struct fmt::formatter<Eigen::Matrix<T, R, C>> {
 
   template <typename FormatContext>
   auto format(const Eigen::Matrix<T, R, C>& mat, FormatContext& ctx)
-      -> FormatContext::iterator {
+      -> typename FormatContext::iterator {
     std::ostringstream oss;
     oss << mat;
     return fmt::format_to(ctx.out(), "{}", oss.str());
@@ -130,7 +130,7 @@ struct fmt::formatter<gtsam::NonlinearFactor> {
 
   template <typename FormatContext>
   auto format(const gtsam::Factor& factor, FormatContext& ctx)
-      -> FormatContext::iterator {
+      -> typename FormatContext::iterator {
     std::ostringstream oss;
     oss << "Factor: ";
     for (auto key_it = factor.begin(); key_it != factor.end(); key_it++) {
