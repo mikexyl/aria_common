@@ -78,7 +78,7 @@ target_link_libraries(${PROJECT_NAME}
 find_package(rclcpp QUIET)
 
 # if ros is found, add the ros include directories
-if(rclcpp_FOUND)
+if(0) # disable ros2 for now
         find_package(rosbag2_cpp REQUIRED)
         find_package(rosbag2_storage REQUIRED)
         set(ROS_SRC
