@@ -90,7 +90,7 @@ class Timer {
 #define BENCHMARK(codeBlock, label, index)                           \
   do {                                                               \
     std::string label_str(label);                                    \
-    Timer timer(label_str, index);                                   \
+    aria::Timer timer(label_str, index);                                   \
     try {                                                            \
       codeBlock;                                                     \
     } catch (const std::exception& e) {                              \
