@@ -74,41 +74,7 @@ target_link_libraries(${PROJECT_NAME}
         ${LIBS}
 )
 
-# find ros2
-find_package(rclcpp QUIET)
-
-# if ros is found, add the ros include directories
-if(0) # disable ros2 for now
-        find_package(rosbag2_cpp REQUIRED)
-        find_package(rosbag2_storage REQUIRED)
-        set(ROS_SRC
-                src/rosbag_reader.cpp
-                src/rosbag_writer.cpp
-        )
-        set(ROS_LIBS
-                rosbag2_cpp::rosbag2_cpp
-                rosbag2_storage::rosbag2_storage
-        )
-
-        add_library(${PROJECT_NAME}_ros SHARED
-                ${ROS_SRC}
-        )
-        target_include_directories(
-                ${PROJECT_NAME}_ros
-                PUBLIC
-                ${INCLUDES}
-        )
-        target_link_libraries(${PROJECT_NAME}_ros
-                PUBLIC
-                ${PROJECT_NAME}
-                ${ROS_LIBS}
-        )
-else()
-        # make a dummy target
-        add_library(${PROJECT_NAME}_ros INTERFACE)
-endif()
-
-install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_ros
+install(TARGETS ${PROJECT_NAME}
         EXPORT ${PROJECT_NAME}Targets
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -144,4 +110,3 @@ install(FILES
   "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
   DESTINATION lib/cmake/${PROJECT_NAME}
 )
-
