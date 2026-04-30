@@ -185,31 +185,52 @@ struct fmt::formatter<
   spdlog::dump_backtrace();                                 \
   std::abort();
 
-// cancel glog's CHECK macro
-#ifdef CHECK
-#undef CHECK
+#define ARIA_CHECK_LT(a, b, ...) ARIA_CHECK((a) < (b), ##__VA_ARGS__)
+
+#define ARIA_CHECK_NE(a, b, ...) ARIA_CHECK((a) != (b), ##__VA_ARGS__)
+
+#define ARIA_CHECK_EQ(a, b, ...) ARIA_CHECK((a) == (b), ##__VA_ARGS__)
+
+#define ARIA_CHECK_GE(a, b, ...) ARIA_CHECK((a) >= (b), ##__VA_ARGS__)
+
+#define ARIA_CHECK_GT(a, b, ...) ARIA_CHECK((a) > (b), ##__VA_ARGS__)
+
+#define ARIA_CHECK(expr, ...)                                              \
+  do {                                                                     \
+    if (!(expr)) {                                                         \
+      spdlog::critical(                                                    \
+          "Check failed: {} at {}:{}, function {}" __VA_OPT__(", {}"),     \
+          #expr,                                                           \
+          __FILE__,                                                        \
+          __LINE__,                                                        \
+          __PRETTY_FUNCTION__ __VA_OPT__(, fmt::format("{}", __VA_ARGS__))); \
+      std::abort();                                                        \
+    }                                                                      \
+  } while (0)
+
+#ifndef CHECK
+#define CHECK(expr, ...) ARIA_CHECK(expr, ##__VA_ARGS__)
 #endif
 
-#define CHECK_LT(a, b, ...) CHECK((a) < (b), ##__VA_ARGS__)
+#ifndef CHECK_LT
+#define CHECK_LT(a, b, ...) ARIA_CHECK_LT(a, b, ##__VA_ARGS__)
+#endif
 
-#define CHECK_NE(a, b, ...) CHECK((a) != (b), ##__VA_ARGS__)
+#ifndef CHECK_NE
+#define CHECK_NE(a, b, ...) ARIA_CHECK_NE(a, b, ##__VA_ARGS__)
+#endif
 
-#define CHECK_EQ(a, b, ...) CHECK((a) == (b), ##__VA_ARGS__)
+#ifndef CHECK_EQ
+#define CHECK_EQ(a, b, ...) ARIA_CHECK_EQ(a, b, ##__VA_ARGS__)
+#endif
 
-#define CHECK_GE(a, b, ...) CHECK((a) >= (b), ##__VA_ARGS__)
+#ifndef CHECK_GE
+#define CHECK_GE(a, b, ...) ARIA_CHECK_GE(a, b, ##__VA_ARGS__)
+#endif
 
-#define CHECK_GT(a, b, ...) CHECK((a) > (b)), ##__VA_ARGS__)
-
-#define CHECK(expr, ...)                                                   \
-  if (!(expr)) {                                                           \
-    spdlog::critical(                                                      \
-        "Check failed: {} at {}:{}, function {}" __VA_OPT__(", {}"),       \
-        #expr,                                                             \
-        __FILE__,                                                          \
-        __LINE__,                                                          \
-        __PRETTY_FUNCTION__ __VA_OPT__(, fmt::format("{}", __VA_ARGS__))); \
-    std::abort();                                                          \
-  }
+#ifndef CHECK_GT
+#define CHECK_GT(a, b, ...) ARIA_CHECK_GT(a, b, ##__VA_ARGS__)
+#endif
 
 using namespace gtsam;
 
@@ -287,10 +308,10 @@ inline std::string printKeyPointMatches(std::vector<cv::KeyPoint> keypoints0,
                                         std::vector<cv::KeyPoint> keypoints1,
                                         std::string key = "",
                                         std::vector<bool> mask = {}) {
-  CHECK(keypoints0.size() == keypoints1.size());
+  ARIA_CHECK(keypoints0.size() == keypoints1.size());
 
   if (mask.size()) {
-    CHECK(mask.size() == keypoints0.size())
+    ARIA_CHECK(mask.size() == keypoints0.size());
   } else {
     mask = std::vector<bool>(keypoints0.size(), true);
   }
