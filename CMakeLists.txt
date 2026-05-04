@@ -9,6 +9,14 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # find gtsam
 find_package(GTSAM REQUIRED)
+set(_gtsam_include_dir "${GTSAM_INCLUDE_DIR}")
+if(NOT _gtsam_include_dir AND DEFINED CACHE{GTSAM_INCLUDE_DIR})
+        set(_gtsam_include_dir "$CACHE{GTSAM_INCLUDE_DIR}")
+endif()
+if(NOT _gtsam_include_dir AND GTSAM_DIR)
+        set(_gtsam_include_dir "${GTSAM_DIR}/../../../include")
+endif()
+get_filename_component(GTSAM_INCLUDE_DIR_ABS "${_gtsam_include_dir}" ABSOLUTE)
 
 # find spdlog
 find_package(spdlog REQUIRED)
@@ -29,6 +37,7 @@ find_package(yaml-cpp REQUIRED)
 
 set(INCLUDES
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        ${GTSAM_INCLUDE_DIR_ABS}
         ${spdlog_INCLUDE_DIRS}
         ${OpenCV_INCLUDE_DIRS}
         ${TBB_INCLUDE_DIRS}
@@ -68,6 +77,10 @@ target_include_directories(
         ${PROJECT_NAME}
         PUBLIC
         ${INCLUDES}
+)
+target_compile_options(${PROJECT_NAME}
+        PRIVATE
+        "-I${GTSAM_INCLUDE_DIR_ABS}"
 )
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
